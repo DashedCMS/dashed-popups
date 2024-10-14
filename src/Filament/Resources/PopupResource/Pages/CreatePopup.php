@@ -9,14 +9,14 @@ use Filament\Resources\Pages\CreateRecord\Concerns\Translatable;
 
 class CreatePopup extends CreateRecord
 {
-    use Translatable;
+//    use Translatable;
 
     protected static string $resource = PopupResource::class;
 
     protected function getActions(): array
     {
         return [
-            LocaleSwitcher::make(),
+//            LocaleSwitcher::make(),
         ];
     }
 

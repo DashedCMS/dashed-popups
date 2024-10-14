@@ -9,7 +9,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
 use Dashed\DashedPopups\Filament\Resources\PopupResource;
 
-class ListPopup extends ListRecords
+class ListPopups extends ListRecords
 {
     protected static string $resource = PopupResource::class;
 
@@ -17,15 +17,6 @@ class ListPopup extends ListRecords
     {
         return [
             CreateAction::make(),
-            Action::make('createContactPopup')
-                ->label('Contact popupulier aanmaken')
-                ->action(function () {
-                    Popups::createPresetPopups('contact');
-                    Notification::make()
-                        ->title('Contact popupulier aangemaakt')
-                        ->success()
-                        ->send();
-                }),
         ];
     }
 }

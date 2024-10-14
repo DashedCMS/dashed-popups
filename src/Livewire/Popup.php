@@ -13,9 +13,9 @@ class Popup extends Component
     public ?\Dashed\DashedPopups\Models\PopupView $popupView = null;
     public $showPopup = false;
 
-    public function mount(int $popupId)
+    public function mount(string|int $popupId)
     {
-        $this->popup = \Dashed\DashedPopups\Models\Popup::find($popupId);
+        $this->popup = \Dashed\DashedPopups\Models\Popup::where('name', $popupId)->orWhere('id', $popupId)->first();
         if (!$this->popup) {
             return;
         }
