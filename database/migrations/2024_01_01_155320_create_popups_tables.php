@@ -10,7 +10,7 @@ return new class () extends Migration {
      */
     public function up(): void
     {
-        Schema::table('dashed__popups', function (Blueprint $table) {
+        Schema::create('dashed__popups', function (Blueprint $table) {
             $table->id();
 
             $table->string('name')

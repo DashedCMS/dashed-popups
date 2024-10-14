@@ -2,208 +2,59 @@
 
 namespace Dashed\DashedPopups\Livewire;
 
+use Dashed\DashedPopups\Models\PopupView;
+use Dashed\DashedTranslations\Models\Translation;
+use Illuminate\Support\Facades\Cookie;
 use Livewire\Component;
-use Illuminate\Support\Str;
-use Livewire\WithFileUploads;
-use Illuminate\Support\Facades\App;
-use Dashed\DashedCore\Classes\Sites;
-use Illuminate\Support\Facades\Mail;
-use Dashed\DashedPopups\Models\PopupField;
-use Dashed\DashedPopups\Models\PopupInput;
-use Filament\Notifications\Notification;
-use Dashed\DashedCore\Models\Customsetting;
-use Dashed\DashedPopups\Enums\MailingProviders;
-use Dashed\DashedPopups\Mail\CustomPopupSubmitConfirmationMail;
-use Dashed\DashedPopups\Mail\AdminCustomPopupSubmitConfirmationMail;
 
 class Popup extends Component
 {
-    use WithFileUploads;
+    public ?\Dashed\DashedPopups\Models\Popup $popup = null;
+    public ?\Dashed\DashedPopups\Models\PopupView $popupView = null;
+    public $showPopup = false;
 
-    public \Dashed\DashedPopups\Models\Popup $popup;
-    public array $values = [];
-    public array $blockData = [];
-    public array $inputData = [];
-    public bool $popupSent = false;
-    public ?string $myName = '';
-    public bool $singleColumn = false;
-    public ?string $buttonTitle = '';
-
-    protected $listeners = [
-        'setValue',
-    ];
-
-    public function mount(\Dashed\DashedPopups\Models\Popup $popupId, array $blockData = [], array $inputData = [], bool $singleColumn = false, ?string $buttonTitle = '')
+    public function mount(int $popupId)
     {
-        $this->singleColumn = $singleColumn;
-        $this->popup = $popupId;
-        $this->blockData = $blockData;
-        $this->inputData = $inputData;
-        $this->buttonTitle = $buttonTitle;
-        $this->resetPopup();
-    }
+        $this->popup = \Dashed\DashedPopups\Models\Popup::find($popupId);
+        if (!$this->popup) {
+            return;
+        }
 
-    public function getPopupFieldsProperty()
-    {
-        return $this->popup->fields;
-    }
-
-    public function resetPopup()
-    {
-        foreach ($this->popupFields as $field) {
-            match ($field->type) {
-                'radio' => $field->required ? $this->values[$field->fieldName] = $field->options[0]['name'] : null,
-                'select' => $this->values[$field->fieldName] = $field->options[0]['name'],
-                'select-image' => $this->values[$field->fieldName] = $field->images[0]['image'],
-                'input' => $this->values[$field->fieldName] = request()->get(str($field->name)->slug(), $this->inputData[(string)str($field->name)->slug()] ?? ''),
-                'textarea' => $this->values[$field->fieldName] = request()->get(str($field->name)->slug(), $this->inputData[(string)str($field->name)->slug()] ?? ''),
-                'file' => $this->values[$field->fieldName] = '',
-                default => null,
-            };
+        $popupView = $this->popup->views()->where('session_id', session()->getId())->first();
+        if (!$popupView) {
+            $popupView = $this->popup->views()->create([
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'session_id' => session()->getId(),
+                'first_seen_at' => now(),
+                'last_seen_at' => now(),
+                'seen_count' => 0,
+            ]);
+            $this->showPopup = $this->popup->start_date <= now() && $this->popup->end_date >= now();
+        } else {
+            $this->showPopup = $this->popup->start_date <= now() && $this->popup->end_date >= now() && (!$popupView->closed_at || $popupView->closed_at < now()->subMinutes($this->popup->show_again_after));
+        }
+        $this->popupView = $popupView;
+        if ($this->showPopup) {
+            $this->popupView->seen_count++;
+            $this->popupView->last_seen_at = now();
+            $this->popupView->save();
         }
     }
 
-    protected function mapRules(PopupField $field): array
+    public function goTo()
     {
-        $rules = [
-            'nullable',
-        ];
-
-        if ($field->required) {
-            $rules[] = 'required';
-        }
-
-        if ($field->type === 'input') {
-            $rules[] = 'max:255';
-            $rules[] = 'string';
-        }
-
-        if ($field->type === 'textarea') {
-            $rules[] = 'max:5000';
-            $rules[] = 'string';
-        }
-
-        return $rules;
+        $this->popupView->closed_at = now();
+        $this->popupView->save();
+        $this->showPopup = false;
+        $this->dispatch('redirectTo');
     }
 
-    protected function validationAttributes()
+    public function clickAway(): void
     {
-        return collect($this->popupFields)
-            ->flatMap(fn (PopupField $field) => ['values.' . $field->fieldName => strtolower($field->name)])
-            ->toArray();
-    }
-
-    protected function rules()
-    {
-        return collect($this->popupFields)
-            ->flatMap(fn (PopupField $field) => ['values.' . $field->fieldName => $this->mapRules($field)])
-            ->toArray();
-    }
-
-    public function setValue($field, $value)
-    {
-        $this->values[$field] = $value;
-    }
-
-    public function submit()
-    {
-        $this->validate();
-
-        if ($this->myName) {
-            $this->addError('values.' . $this->popup->fields()->where('type', '!=', 'info')->first()->fieldName, 'Je bent een bot!');
-
-            return Notification::make()
-                ->danger()
-                ->body('Je bent een bot!')
-                ->send();
-        }
-
-        $popupInput = new PopupInput();
-        $popupInput->popup_id = $this->popup->id;
-        $popupInput->ip = request()->ip();
-        $popupInput->user_agent = request()->userAgent();
-        $popupInput->from_url = url()->previous();
-        $popupInput->site_id = Sites::getActive();
-        $popupInput->locale = App::getLocale();
-        $popupInput->save();
-
-        foreach ($this->values as $fieldName => $value) {
-            $field = PopupField::find(str($fieldName)->explode('-')->last());
-            if ($field->type == 'checkbox') {
-                $value = implode(', ', $value);
-                //            } elseif ($field->type == 'file') {
-                //                if ($value instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
-                //                    $value = $value->storeAs('dashed', "popups/" . Str::slug($this->popup->name) . "/" . time() . '.' . $value->getClientOriginalExtension(), 'dashed');
-                //                }else{
-                //                    $value = null;
-                //                }
-            }
-
-            if ($value) {
-                $popupInput->popupFields()->create([
-                    'value' => $value,
-                    'popup_field_id' => $field->id,
-                ]);
-
-                if ($popupInput->popup->emailConfirmationPopupField && $field->id == $popupInput->popup->emailConfirmationPopupField->id) {
-                    $sendToFieldValue = $value;
-                }
-            }
-        }
-
-        if ($sendToFieldValue ?? false) {
-            try {
-                Mail::to($sendToFieldValue)->send(new CustomPopupSubmitConfirmationMail($popupInput));
-            } catch (\Exception $e) {
-            }
-        }
-
-        try {
-            $notificationPopupInputsEmails = Customsetting::get('notification_popup_inputs_emails', Sites::getActive(), '[]');
-            if ($notificationPopupInputsEmails) {
-                foreach (json_decode($notificationPopupInputsEmails) as $notificationPopupInputsEmail) {
-                    Mail::to($notificationPopupInputsEmail)->send(new AdminCustomPopupSubmitConfirmationMail($popupInput, $sendToFieldValue ?? null));
-                }
-            }
-        } catch (\Exception $e) {
-        }
-
-        foreach (MailingProviders::cases() as $provider) {
-            $provider = $provider->getClass();
-            if ($provider->connected) {
-                $provider->createContactFromPopupInput($popupInput);
-            }
-        }
-
-        $this->resetPopup();
-        $this->popupSent = true;
-
-        $this->dispatch('popupSubmitted', [
-            'popupId' => $this->popup->id,
-        ]);
-
-        Notification::make()
-            ->success()
-            ->body('Je bericht is verzonden!')
-            ->send();
-
-        $redirectUrl = $this->popup->redirect_after_popup ? linkHelper()->getUrl($this->popup->redirect_after_popup) : '';
-        if ($redirectUrl) {
-            return redirect($redirectUrl);
-        }
-    }
-
-    public function updated($name, $value)
-    {
-        if ($value instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
-            $path = $value->storeAs('dashed', "popups/popup-{$this->popup->name}-" . time() . '.' . $value->getClientOriginalExtension(), 'dashed');
-            $this->values[str($name)->explode('.')->last()] = $path;
-        }
-    }
-
-    public function setValueForField(string $field, string $value)
-    {
-        $this->values[$field] = $value;
+        $this->popupView->closed_at = now();
+        $this->popupView->save();
+        $this->showPopup = false;
     }
 
     public function render()

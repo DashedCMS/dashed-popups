@@ -10,24 +10,18 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Dashed\DashedCore\Models\Concerns\HasCustomBlocks;
 
-class Popup extends Model
+class PopupView extends Model
 {
-    protected $table = 'dashed__popups';
-
-    protected static function booted()
-    {
-        static::deleting(function ($popup) {
-            $popup->views()->delete();
-        });
-    }
+    protected $table = 'dashed__popup_views';
 
     protected $casts = [
-        'start_date' => 'datetime',
-        'end_date' => 'datetime',
+        'first_seen_at' => 'datetime',
+        'last_seen_at' => 'datetime',
+        'closed_at' => 'datetime',
     ];
 
-    public function views(): HasMany
+    public function popup(): BelongsTo
     {
-        return $this->hasMany(PopupView::class);
+        return $this->belongsTo(Popup::class);
     }
 }
