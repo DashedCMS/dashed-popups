@@ -1,12 +1,12 @@
 {
-    "name": "dashed/dashed-forms",
-    "description": "This is my package dashed-forms",
+    "name": "dashed/dashed-popups",
+    "description": "This is my package dashed-popups",
     "keywords": [
         "Dashed",
         "laravel",
-        "dashed-forms"
+        "dashed-popups"
     ],
-    "homepage": "https://github.com/Dashed-DEV/dashed-forms",
+    "homepage": "https://github.com/Dashed-DEV/dashed-popups",
     "license": "MIT",
     "authors": [
         {
@@ -17,8 +17,7 @@
     ],
     "require": {
         "php": "^8.3",
-        "spatie/laravel-package-tools": "^1.16",
-        "maatwebsite/excel": "^3.1"
+        "spatie/laravel-package-tools": "^1.16"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.63",
@@ -28,13 +27,13 @@
     },
     "autoload": {
         "psr-4": {
-            "Dashed\\DashedForms\\": "src",
-            "Dashed\\DashedForms\\Database\\Factories\\": "database/factories"
+            "Dashed\\DashedPopups\\": "src",
+            "Dashed\\DashedPopups\\Database\\Factories\\": "database/factories"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Dashed\\DashedForms\\Tests\\": "tests"
+            "Dashed\\DashedPopups\\Tests\\": "tests"
         }
     },
     "scripts": {
@@ -51,10 +50,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Dashed\\DashedForms\\DashedFormsServiceProvider"
+                "Dashed\\DashedPopups\\DashedPopupsServiceProvider"
             ],
             "aliases": {
-                "Forms": "Dashed\\DashedForms\\Classes\\Forms"
+                "Popups": "Dashed\\DashedPopups\\Classes\\Popups"
             }
         }
     },
