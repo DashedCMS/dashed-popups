@@ -18,10 +18,9 @@ class DashedPopupsServiceProvider extends PackageServiceProvider
     {
         Livewire::component('dashed-popups.popup', Popup::class);
 
-        $this->app->booted(function () {
-            $schedule = app(Schedule::class);
-            $schedule->command(SendWebhooksForPopupInputs::class)->everyMinute();
-        });
+//        $this->app->booted(function () {
+//            $schedule = app(Schedule::class);
+//        });
     }
 
     public function configurePackage(Package $package): void
@@ -30,29 +29,22 @@ class DashedPopupsServiceProvider extends PackageServiceProvider
 
         $this->publishes([
             __DIR__ . '/../resources/templates' => resource_path('views/' . env('SITE_THEME', 'dashed')),
-            __DIR__ . '/../resources/component-templates' => resource_path('views/components'),
         ], 'dashed-templates');
 
-        cms()->builder(
-            'settingPages',
-            array_merge(cms()->builder('settingPages'), [
-                'popupNotifications' => [
-                    'name' => 'Popupulier instellingen',
-                    'description' => 'Beheer instellingen voor de popupulieren',
-                    'icon' => 'bell',
-                    'page' => PopupSettingsPage::class,
-                ],
-            ])
-        );
+//        cms()->builder(
+//            'settingPages',
+//            array_merge(cms()->builder('settingPages'), [
+//                'popupNotifications' => [
+//                    'name' => 'Popupulier instellingen',
+//                    'description' => 'Beheer instellingen voor de popupulieren',
+//                    'icon' => 'bell',
+//                    'page' => PopupSettingsPage::class,
+//                ],
+//            ])
+//        );
 
         $package
             ->name('dashed-popups')
-            ->hasRoutes([
-                'frontend',
-            ])
-            ->hasCommands([
-                SendWebhooksForPopupInputs::class,
-            ])
             ->hasViews();
 
     }

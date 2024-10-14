@@ -11,8 +11,18 @@ return new class () extends Migration {
     public function up(): void
     {
         Schema::table('dashed__popups', function (Blueprint $table) {
-            $table->text('from_url')
-                ->change();
+            $table->id();
+
+            $table->string('name')
+                ->unique();
+            $table->dateTime('start_date');
+            $table->dateTime('end_date');
+            $table->integer('delay')
+                ->default(0);
+            $table->integer('show_again_after')
+                ->default(0);
+
+            $table->timestamps();
         });
     }
 

@@ -17,9 +17,6 @@ class DashedPopupsPlugin implements Plugin
     public function register(Panel $panel): void
     {
         $panel
-            ->pages([
-                PopupSettingsPage::class,
-            ])
             ->resources([
                 PopupResource::class,
             ]);
