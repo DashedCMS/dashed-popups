@@ -1,0 +1,63 @@
+{
+    "name": "dashed/dashed-forms",
+    "description": "This is my package dashed-forms",
+    "keywords": [
+        "Dashed",
+        "laravel",
+        "dashed-forms"
+    ],
+    "homepage": "https://github.com/Dashed-DEV/dashed-forms",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Robin van Maasakker",
+            "email": "robin@dashed.nl",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.3",
+        "spatie/laravel-package-tools": "^1.16",
+        "maatwebsite/excel": "^3.1"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.63",
+        "orchestra/testbench": "^9",
+        "pestphp/pest": "^2.35",
+        "pestphp/pest-plugin-laravel": "^2.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Dashed\\DashedForms\\": "src",
+            "Dashed\\DashedForms\\Database\\Factories\\": "database/factories"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Dashed\\DashedForms\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "analyse": "vendor/bin/phpstan analyse",
+        "test": "vendor/bin/pest",
+        "test-coverage": "vendor/bin/pest --coverage"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Dashed\\DashedForms\\DashedFormsServiceProvider"
+            ],
+            "aliases": {
+                "Forms": "Dashed\\DashedForms\\Classes\\Forms"
+            }
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
