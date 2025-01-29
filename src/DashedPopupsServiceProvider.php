@@ -2,6 +2,7 @@
 
 namespace Dashed\DashedPopups;
 
+use Dashed\DashedCore\DashedCorePlugin;
 use Livewire\Livewire;
 use Dashed\DashedPopups\Livewire\Popup;
 use Spatie\LaravelPackageTools\Package;
@@ -47,5 +48,9 @@ class DashedPopupsServiceProvider extends PackageServiceProvider
             ->name('dashed-popups')
             ->hasViews();
 
+
+        cms()->builder('plugins', [
+            new DashedPopupsPlugin(),
+        ]);
     }
 }
