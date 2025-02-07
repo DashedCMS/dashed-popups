@@ -27,10 +27,10 @@
                         </svg>
                     @endif
 
-                    <x-drift::image
+                    <x-dashed-files::image
                         class="w-24 lg:w-36 xl:w-48 rounded-xl"
                         config="dashed"
-                        :path="Translation::get('popup-image', 'popup-' . $popup->name, '', 'image')"
+                        :mediaId="Translation::get('popup-image', 'popup-' . $popup->name, '', 'image')"
                         alt=""
                         :manipulations="[
                                                         'widen' => 500,
@@ -45,10 +45,10 @@
                 </div>
                 <div class="lg:mr-[150px] flex flex-col gap-2">
                     <div class="flex gap-2 items-center justify-center">
-                        <x-drift::image
+                        <x-dashed-files::image
                             class="w-12 rounded-xl"
                             config="dashed"
-                            :path="Translation::get('review-image', 'popup-' . $popup->name, '', 'image')"
+                            :mediaId="Translation::get('review-image', 'popup-' . $popup->name, '', 'image')"
                             alt=""
                             :manipulations="[
                                     'widen' => 500,
