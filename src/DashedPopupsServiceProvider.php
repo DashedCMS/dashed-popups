@@ -22,6 +22,10 @@ class DashedPopupsServiceProvider extends PackageServiceProvider
 //        $this->app->booted(function () {
 //            $schedule = app(Schedule::class);
 //        });
+
+        cms()->builder('plugins', [
+            new DashedPopupsPlugin(),
+        ]);
     }
 
     public function configurePackage(Package $package): void
