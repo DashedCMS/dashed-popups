@@ -2,13 +2,8 @@
 
 namespace Dashed\DashedPopups\Models;
 
-use Spatie\Activitylog\LogOptions;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\Translatable\HasTranslations;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Dashed\DashedCore\Models\Concerns\HasCustomBlocks;
 
 class Popup extends Model
 {

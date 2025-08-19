@@ -2,36 +2,24 @@
 
 namespace Dashed\DashedPopups\Filament\Resources;
 
-use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
-use Filament\Tables\Actions\Action;
-use Dashed\DashedPopups\Classes\Popups;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Toggle;
-use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\Textarea;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
-use Dashed\DashedPopups\Models\PopupInput;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\FileUpload;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Resources\Concerns\Translatable;
 use Filament\Tables\Actions\DeleteBulkAction;
-use Dashed\DashedPopups\Enums\MailingProviders;
-use Dashed\DashedCore\Classes\QueryHelpers\SearchQuery;
-use Dashed\DashedPopups\Classes\WebhookProviders\Ternair;
-use Dashed\DashedCore\Filament\Concerns\HasCustomBlocksTab;
 use Dashed\DashedPopups\Filament\Resources\PopupResource\Pages\EditPopup;
 use Dashed\DashedPopups\Filament\Resources\PopupResource\Pages\ListPopups;
 use Dashed\DashedPopups\Filament\Resources\PopupResource\Pages\CreatePopup;
 
 class PopupResource extends Resource
 {
-//    use Translatable;
+    //    use Translatable;
 
     protected static ?string $model = \Dashed\DashedPopups\Models\Popup::class;
     protected static ?string $recordTitleAttribute = 'name';
@@ -46,7 +34,6 @@ class PopupResource extends Resource
     {
         return 'Popups';
     }
-
 
     public static function form(Form $form): Form
     {
@@ -86,7 +73,7 @@ class PopupResource extends Resource
             ->columns([
                 TextColumn::make('name')
                     ->label('Naam')
-                    ->formatStateUsing(fn($state) => ucfirst($state))
+                    ->formatStateUsing(fn ($state) => ucfirst($state))
                     ->sortable()
                     ->searchable(),
             ])
