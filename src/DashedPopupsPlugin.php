@@ -5,7 +5,6 @@ namespace Dashed\DashedPopups;
 use Filament\Panel;
 use Filament\Contracts\Plugin;
 use Dashed\DashedPopups\Filament\Resources\PopupResource;
-use Dashed\DashedPopups\Filament\Pages\Settings\PopupSettingsPage;
 
 class DashedPopupsPlugin implements Plugin
 {
