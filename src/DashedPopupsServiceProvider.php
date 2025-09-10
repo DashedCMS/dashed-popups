@@ -47,8 +47,7 @@ class DashedPopupsServiceProvider extends PackageServiceProvider
         //        );
 
         $package
-            ->name('dashed-popups')
-            ->hasViews();
+            ->name('dashed-popups');
 
 
         cms()->builder('plugins', [
