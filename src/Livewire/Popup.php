@@ -57,9 +57,9 @@ class Popup extends Component
     public function render()
     {
         if (view()->exists('dashed.popups.' . str($this->popup->name)->slug() . '-popup')) {
-            return view(env('SITE_THEME', 'dashed') . '.popups.' . str($this->popup->name)->slug() . '-popup');
+            return view(config('dashed-core.site_theme') . '.popups.' . str($this->popup->name)->slug() . '-popup');
         } else {
-            return view(env('SITE_THEME', 'dashed') . '.popups.popup');
+            return view(config('dashed-core.site_theme') . '.popups.popup');
         }
     }
 }
