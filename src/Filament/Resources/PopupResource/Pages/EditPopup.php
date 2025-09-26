@@ -29,6 +29,7 @@ class EditPopup extends EditRecord
     public function duplicate()
     {
         $newRecord = $this->record->replicate();
+        $newRecord->name = $newRecord->name . ' (kopie)';
         $newRecord->save();
 
         return redirect(route('filament.dashed.resources.popups.edit', [$newRecord]));
