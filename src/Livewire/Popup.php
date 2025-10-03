@@ -16,7 +16,7 @@ class Popup extends Component
         if ($this->popup) {
 
             $popupView = $this->popup->views()->where('session_id', session()->getId())->first();
-            if (!$popupView) {
+            if (! $popupView) {
                 $popupView = $this->popup->views()->create([
                     'ip_address' => request()->ip(),
                     'user_agent' => request()->userAgent(),
@@ -27,7 +27,7 @@ class Popup extends Component
                 ]);
                 $this->showPopup = $this->popup->start_date <= now() && $this->popup->end_date >= now();
             } else {
-                $this->showPopup = $this->popup->start_date <= now() && $this->popup->end_date >= now() && (!$popupView->closed_at || $popupView->closed_at < now()->subMinutes($this->popup->show_again_after));
+                $this->showPopup = $this->popup->start_date <= now() && $this->popup->end_date >= now() && (! $popupView->closed_at || $popupView->closed_at < now()->subMinutes($this->popup->show_again_after));
             }
             $this->popupView = $popupView;
             if ($this->showPopup) {
