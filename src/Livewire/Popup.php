@@ -13,29 +13,28 @@ class Popup extends Component
     public function mount(string|int $popupId)
     {
         $this->popup = \Dashed\DashedPopups\Models\Popup::where('name', $popupId)->orWhere('id', $popupId)->first();
-        if (! $this->popup) {
-            return;
-        }
+        if ($this->popup) {
 
-        $popupView = $this->popup->views()->where('session_id', session()->getId())->first();
-        if (! $popupView) {
-            $popupView = $this->popup->views()->create([
-                'ip_address' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-                'session_id' => session()->getId(),
-                'first_seen_at' => now(),
-                'last_seen_at' => now(),
-                'seen_count' => 0,
-            ]);
-            $this->showPopup = $this->popup->start_date <= now() && $this->popup->end_date >= now();
-        } else {
-            $this->showPopup = $this->popup->start_date <= now() && $this->popup->end_date >= now() && (! $popupView->closed_at || $popupView->closed_at < now()->subMinutes($this->popup->show_again_after));
-        }
-        $this->popupView = $popupView;
-        if ($this->showPopup) {
-            $this->popupView->seen_count++;
-            $this->popupView->last_seen_at = now();
-            $this->popupView->save();
+            $popupView = $this->popup->views()->where('session_id', session()->getId())->first();
+            if (! $popupView) {
+                $popupView = $this->popup->views()->create([
+                    'ip_address' => request()->ip(),
+                    'user_agent' => request()->userAgent(),
+                    'session_id' => session()->getId(),
+                    'first_seen_at' => now(),
+                    'last_seen_at' => now(),
+                    'seen_count' => 0,
+                ]);
+                $this->showPopup = $this->popup->start_date <= now() && $this->popup->end_date >= now();
+            } else {
+                $this->showPopup = $this->popup->start_date <= now() && $this->popup->end_date >= now() && (! $popupView->closed_at || $popupView->closed_at < now()->subMinutes($this->popup->show_again_after));
+            }
+            $this->popupView = $popupView;
+            if ($this->showPopup) {
+                $this->popupView->seen_count++;
+                $this->popupView->last_seen_at = now();
+                $this->popupView->save();
+            }
         }
     }
 
@@ -56,10 +55,10 @@ class Popup extends Component
 
     public function render()
     {
-        if (view()->exists('dashed.popups.' . str($this->popup->name)->slug() . '-popup')) {
-            return view(config('dashed-core.site_theme') . '.popups.' . str($this->popup->name)->slug() . '-popup');
+        if (view()->exists('dashed.popups.' . str($this->popup->name ?? '')->slug() . '-popup')) {
+            return view(env('SITE_THEME', 'dashed') . '.popups.' . str($this->popup->name)->slug() . '-popup');
         } else {
-            return view(config('dashed-core.site_theme') . '.popups.popup');
+            return view(env('SITE_THEME', 'dashed') . '.popups.popup');
         }
     }
 }
