@@ -1,6 +1,6 @@
 <div x-data="{ showPopup: @entangle('showPopup'), show: false }" x-init="setTimeout(() => show = true, {{ $popup->delay * 1000 }})"
      x-show="show && showPopup">
-    <div class="fixed z-[50] w-[100vw] bottom-0 left-0 bg-gradient-to-tr from-primary-900 to-primary-900 "
+    <div class="fixed z-50 w-screen bottom-0 left-0 bg-linear-to-tr from-primary-900 to-primary-900 "
          aria-labelledby="modal-title" role="dialog"
          x-cloak
          aria-modal="true">

@@ -4,8 +4,8 @@ namespace Dashed\DashedPopups\Filament\Resources\PopupResource\Pages;
 
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
-use Filament\Actions\LocaleSwitcher;
 use Filament\Resources\Pages\EditRecord;
+use LaraZeus\SpatieTranslatable\Actions\LocaleSwitcher;
 use Dashed\DashedPopups\Filament\Resources\PopupResource;
 
 class EditPopup extends EditRecord
@@ -29,6 +29,9 @@ class EditPopup extends EditRecord
     public function duplicate()
     {
         $newRecord = $this->record->replicate();
+        while (\Dashed\DashedPopups\Models\Popup::where('name', $newRecord->name)->exists()) {
+            $newRecord->name = $newRecord->name . '-copy';
+        }
         $newRecord->save();
 
         return redirect(route('filament.dashed.resources.popups.edit', [$newRecord]));
