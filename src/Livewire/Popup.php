@@ -9,9 +9,13 @@ class Popup extends Component
     public ?\Dashed\DashedPopups\Models\Popup $popup = null;
     public ?\Dashed\DashedPopups\Models\PopupView $popupView = null;
     public $showPopup = false;
+    public $eventName = 'redirectTo';
 
-    public function mount(string|int $popupId)
+    public function mount(string|int $popupId, ?string $eventName = null)
     {
+        if ($eventName) {
+            $this->eventName = $eventName;
+        }
         $this->popup = \Dashed\DashedPopups\Models\Popup::where('name', $popupId)->orWhere('id', $popupId)->first();
         if ($this->popup) {
 
@@ -43,7 +47,7 @@ class Popup extends Component
         $this->popupView->closed_at = now();
         $this->popupView->save();
         $this->showPopup = false;
-        $this->dispatch('redirectTo');
+        $this->dispatch($this->eventName);
     }
 
     public function clickAway(): void
