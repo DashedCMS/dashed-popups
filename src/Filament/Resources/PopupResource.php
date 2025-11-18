@@ -2,6 +2,7 @@
 
 namespace Dashed\DashedPopups\Filament\Resources;
 
+use Dashed\DashedCore\Classes\Actions\ActionGroups\ToolbarActions;
 use UnitEnum;
 use BackedEnum;
 use Filament\Tables\Table;
@@ -84,11 +85,7 @@ class PopupResource extends Resource
                     ->button(),
                 DeleteAction::make(),
             ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
-            ])
+            ->toolbarActions(ToolbarActions::getActions())
             ->filters([
                 //
             ]);
