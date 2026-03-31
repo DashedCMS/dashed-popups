@@ -3,6 +3,7 @@
 namespace Dashed\DashedPopups;
 
 use Livewire\Livewire;
+use Illuminate\Support\Facades\Gate;
 use Dashed\DashedPopups\Livewire\Popup;
 use Spatie\LaravelPackageTools\Package;
 use Illuminate\Console\Scheduling\Schedule;
@@ -24,6 +25,14 @@ class DashedPopupsServiceProvider extends PackageServiceProvider
         cms()->builder('plugins', [
             new DashedPopupsPlugin(),
         ]);
+
+        Gate::policy(\Dashed\DashedPopups\Models\Popup::class, \Dashed\DashedPopups\Policies\PopupPolicy::class);
+
+        cms()->registerRolePermissions('Popups', [
+            'view_popup' => 'Popups bekijken',
+            'edit_popup' => 'Popups bewerken',
+            'delete_popup' => 'Popups verwijderen',
+        ]);
     }
 
     public function configurePackage(Package $package): void
@@ -31,7 +40,7 @@ class DashedPopupsServiceProvider extends PackageServiceProvider
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
         $this->publishes([
-            __DIR__ . '/../resources/templates' => resource_path('views/' . config('dashed-core.site_theme')),
+            __DIR__ . '/../resources/templates' => resource_path('views/' . config('dashed-core.site_theme', 'dashed')),
         ], 'dashed-templates');
 
         //        cms()->builder(
