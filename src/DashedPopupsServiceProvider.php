@@ -33,6 +33,37 @@ class DashedPopupsServiceProvider extends PackageServiceProvider
             'edit_popup' => 'Popups bewerken',
             'delete_popup' => 'Popups verwijderen',
         ]);
+
+        cms()->registerResourceDocs(
+            resource: \Dashed\DashedPopups\Filament\Resources\PopupResource::class,
+            title: 'Popups',
+            intro: 'Met popups laat je een boodschap in beeld verschijnen bij bezoekers van de website, bijvoorbeeld voor een actie, nieuwsbrief inschrijving of belangrijke mededeling. Je bepaalt zelf wanneer een popup verschijnt en hoe vaak bezoekers hem te zien krijgen.',
+            sections: [
+                [
+                    'heading' => 'Wat kun je hier doen?',
+                    'body' => <<<MARKDOWN
+- Een nieuwe popup aanmaken met een eigen titel en inhoud.
+- Bestaande popups bewerken of tijdelijk uitschakelen.
+- Per popup instellen wanneer hij start en wanneer hij weer stopt.
+- De weergavefrequentie per bezoeker regelen.
+MARKDOWN,
+                ],
+                [
+                    'heading' => 'Timing van een popup',
+                    'body' => 'Een popup die meteen in beeld knalt is irritant, dus je stelt zelf in hoe lang hij wacht voor hij de eerste keer verschijnt. Daarnaast geef je een interval op dat bepaalt hoeveel tijd er tussen twee weergaven bij dezelfde bezoeker moet zitten.',
+                ],
+                [
+                    'heading' => 'Automatische publicatie',
+                    'body' => 'Voor een actie die alleen in een bepaalde periode mag lopen kun je een start- en einddatum opgeven. Voor de startdatum is de popup nog niet te zien en na de einddatum verdwijnt hij automatisch weer.',
+                ],
+            ],
+            tips: [
+                'Wacht minimaal een paar seconden voordat een popup voor het eerst verschijnt.',
+                'Gebruik een duidelijke knop zodat bezoekers weten wat er van hen verwacht wordt.',
+                'Zet een ruim interval in zodat terugkerende bezoekers de popup niet te vaak zien.',
+                'Plan actiepopups vooraf met een start- en einddatum zodat ze vanzelf lopen.',
+            ],
+        );
     }
 
     public function configurePackage(Package $package): void
