@@ -61,9 +61,11 @@
                             <h2 class="text-lg leading-6 font-bold text-gray-900 mb-3">{{ $popup->title }}</h2>
                         @endif
 
-                        @foreach ($popup->blocks ?? [] as $block)
-                            @includeIf('dashed-popups::blocks.' . str_replace('_', '-', $block['type'] ?? ''), ['data' => $block['data'] ?? []])
-                        @endforeach
+                        @if(is_array($popup->blocks))
+                            @foreach ($popup->blocks ?? [] as $block)
+                                @includeIf('dashed-popups::blocks.' . str_replace('_', '-', $block['type'] ?? ''), ['data' => $block['data'] ?? []])
+                            @endforeach
+                        @endif
 
                         <form wire:submit.prevent="submitEmail" class="mt-4 space-y-3">
                             <input type="email"
@@ -72,7 +74,7 @@
                                    required
                                    class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring focus:ring-blue-300">
                             @error('email')
-                                <span class="text-sm text-red-600">{{ $message }}</span>
+                            <span class="text-sm text-red-600">{{ $message }}</span>
                             @enderror
                             <button type="submit" class="button button--primary transition w-full">
                                 Claim mijn {{ $popup->discount_percentage }}% korting
