@@ -14,6 +14,16 @@ class EditPopup extends EditRecord
 
     protected static string $resource = PopupResource::class;
 
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        foreach (['title', 'blocks'] as $attribute) {
+            $value = $this->record->{$attribute};
+            $data[$attribute] = $value instanceof \Illuminate\Support\Collection ? $value->all() : $value;
+        }
+
+        return $data;
+    }
+
     protected function getActions(): array
     {
         return [
