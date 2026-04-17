@@ -4,27 +4,27 @@ namespace Dashed\DashedPopups\Filament\Resources;
 
 use UnitEnum;
 use BackedEnum;
-use Dashed\DashedPopups\Filament\Blocks\PopupBlockRegistry;
-use Dashed\DashedPopups\Models\Popup;
-use Dashed\DashedPopups\PopupTemplates\PopupTemplateRegistry;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\EditAction;
-use Filament\Forms\Components\Builder;
-use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
-use Filament\Resources\Resource;
-use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Utilities\Get;
+use Filament\Tables\Table;
 use Filament\Schemas\Schema;
+use Filament\Actions\EditAction;
+use Filament\Resources\Resource;
+use Filament\Actions\DeleteAction;
+use Dashed\DashedPopups\Models\Popup;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\Builder;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Schemas\Components\Utilities\Get;
+use Dashed\DashedPopups\Filament\Blocks\PopupBlockRegistry;
+use Dashed\DashedPopups\PopupTemplates\PopupTemplateRegistry;
 use Dashed\DashedCore\Classes\Actions\ActionGroups\ToolbarActions;
-use Dashed\DashedPopups\Filament\Resources\PopupResource\Pages\CreatePopup;
 use Dashed\DashedPopups\Filament\Resources\PopupResource\Pages\EditPopup;
 use Dashed\DashedPopups\Filament\Resources\PopupResource\Pages\ListPopups;
+use Dashed\DashedPopups\Filament\Resources\PopupResource\Pages\CreatePopup;
 
 class PopupResource extends Resource
 {
@@ -67,8 +67,16 @@ class PopupResource extends Resource
                         ->dehydrated(false)
                         ->visible(fn (?Popup $record) => $record === null)
                         ->afterStateUpdated(function ($state, callable $set) {
-                            if ($state) {
-                                $set('blocks', PopupTemplateRegistry::blocksFor($state));
+                            if (! $state) {
+                                return;
+                            }
+
+                            foreach (PopupTemplateRegistry::attributesFor($state) ?? [] as $key => $value) {
+                                $set($key, $value);
+                            }
+
+                            if ($blocks = PopupTemplateRegistry::blocksFor($state)) {
+                                $set('blocks', $blocks);
                             }
                         }),
                 ])

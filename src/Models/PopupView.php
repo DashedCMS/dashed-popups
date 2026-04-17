@@ -2,8 +2,8 @@
 
 namespace Dashed\DashedPopups\Models;
 
-use Dashed\DashedEcommerceCore\Models\DiscountCode;
 use Illuminate\Database\Eloquent\Model;
+use Dashed\DashedEcommerceCore\Models\DiscountCode;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PopupView extends Model

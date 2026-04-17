@@ -2,9 +2,9 @@
 
 namespace Dashed\DashedPopups\Filament\Blocks;
 
-use Filament\Forms\Components\Builder\Block;
-use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Builder\Block;
 
 class ImageBlock
 {

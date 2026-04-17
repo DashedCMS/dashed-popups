@@ -2,8 +2,8 @@
 
 namespace Dashed\DashedPopups\Filament\Blocks;
 
-use Filament\Forms\Components\Builder\Block;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Builder\Block;
 
 class ParagraphBlock
 {

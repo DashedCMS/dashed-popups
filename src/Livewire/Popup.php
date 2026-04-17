@@ -2,14 +2,14 @@
 
 namespace Dashed\DashedPopups\Livewire;
 
-use Dashed\DashedEcommerceCore\Jobs\AbandonedCart\ScheduleAbandonedCartEmailsForCartJob;
+use Livewire\Component;
+use Illuminate\Support\Str;
+use Dashed\DashedPopups\Models\PopupView;
 use Dashed\DashedEcommerceCore\Models\Cart;
+use Illuminate\Support\Facades\RateLimiter;
 use Dashed\DashedEcommerceCore\Models\DiscountCode;
 use Dashed\DashedPopups\Models\Popup as PopupModel;
-use Dashed\DashedPopups\Models\PopupView;
-use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Str;
-use Livewire\Component;
+use Dashed\DashedEcommerceCore\Jobs\AbandonedCart\ScheduleAbandonedCartEmailsForCartJob;
 
 class Popup extends Component
 {
