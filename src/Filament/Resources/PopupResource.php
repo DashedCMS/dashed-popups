@@ -4,31 +4,42 @@ namespace Dashed\DashedPopups\Filament\Resources;
 
 use UnitEnum;
 use BackedEnum;
-use Filament\Tables\Table;
-use Filament\Schemas\Schema;
-use Filament\Actions\EditAction;
-use Filament\Resources\Resource;
+use Dashed\DashedPopups\Filament\Blocks\PopupBlockRegistry;
+use Dashed\DashedPopups\Models\Popup;
+use Dashed\DashedPopups\PopupTemplates\PopupTemplateRegistry;
 use Filament\Actions\DeleteAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Forms\Components\TextInput;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\Builder;
 use Filament\Forms\Components\DateTimePicker;
-use LaraZeus\SpatieTranslatable\Resources\Concerns\Translatable;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 use Dashed\DashedCore\Classes\Actions\ActionGroups\ToolbarActions;
+use Dashed\DashedPopups\Filament\Resources\PopupResource\Pages\CreatePopup;
 use Dashed\DashedPopups\Filament\Resources\PopupResource\Pages\EditPopup;
 use Dashed\DashedPopups\Filament\Resources\PopupResource\Pages\ListPopups;
-use Dashed\DashedPopups\Filament\Resources\PopupResource\Pages\CreatePopup;
 
 class PopupResource extends Resource
 {
-    //    use Translatable;
+    protected static ?string $model = Popup::class;
 
-    protected static ?string $model = \Dashed\DashedPopups\Models\Popup::class;
     protected static ?string $recordTitleAttribute = 'name';
 
     protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-archive-box';
+
     protected static string | UnitEnum | null $navigationGroup = 'Content';
+
     protected static ?string $label = 'Popup';
+
     protected static ?string $pluralLabel = 'Popups';
+
     protected static bool $isGloballySearchable = false;
 
     public static function getNavigationLabel(): string
@@ -38,34 +49,120 @@ class PopupResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        return $schema
-            ->schema([
-                TextInput::make('name')
-                    ->label('Naam')
-                    ->maxLength(255)
-                    ->required()
-                    ->columnSpanFull(),
-                DateTimePicker::make('start_date')
-                    ->label('Start datum')
-                    ->default(now())
-                    ->required(),
-                DateTimePicker::make('end_date')
-                    ->label('Eind datum')
-                    ->default(now()->addYear())
-                    ->required(),
-                TextInput::make('delay')
-                    ->label('Vertraging')
-                    ->helperText('Na hoeveel seconden moet de popup getoond worden? 0 = direct')
-                    ->default(0)
-                    ->required()
-                    ->numeric(),
-                TextInput::make('show_again_after')
-                    ->label('Opnieuw tonen na')
-                    ->helperText('Na hoeveel seconden moet de popup opnieuw getoond worden? 1440 = 1 dag')
-                    ->default(60 * 24)
-                    ->required()
-                    ->numeric(),
-            ]);
+        return $schema->schema([
+            Section::make('Type')
+                ->schema([
+                    Select::make('type')
+                        ->label('Type')
+                        ->options([
+                            'simple' => 'Simpel',
+                            'discount' => 'Korting + email-capture',
+                        ])
+                        ->default('simple')
+                        ->required()
+                        ->live(),
+                    Select::make('_start_from_template')
+                        ->label('Begin vanaf standaard-template')
+                        ->options(PopupTemplateRegistry::options())
+                        ->dehydrated(false)
+                        ->visible(fn (?Popup $record) => $record === null)
+                        ->afterStateUpdated(function ($state, callable $set) {
+                            if ($state) {
+                                $set('blocks', PopupTemplateRegistry::blocksFor($state));
+                            }
+                        }),
+                ])
+                ->columns(2)
+                ->columnSpanFull(),
+
+            Section::make('Inhoud')
+                ->schema([
+                    TextInput::make('name')
+                        ->label('Naam')
+                        ->required()
+                        ->maxLength(255)
+                        ->columnSpanFull(),
+                    TextInput::make('title')
+                        ->label('Kop')
+                        ->columnSpanFull(),
+                    Builder::make('blocks')
+                        ->label('Inhoud-blokken')
+                        ->blocks(fn (?Popup $record) => PopupBlockRegistry::allowedBlocksFor($record ?? new Popup(['type' => 'simple'])))
+                        ->collapsible()
+                        ->cloneable()
+                        ->columnSpanFull(),
+                ])
+                ->columnSpanFull(),
+
+            Section::make('Korting')
+                ->visible(fn (Get $get) => $get('type') === 'discount')
+                ->schema([
+                    TextInput::make('discount_percentage')
+                        ->label('Kortingspercentage')
+                        ->numeric()
+                        ->minValue(1)
+                        ->maxValue(99)
+                        ->default(10)
+                        ->required(),
+                    TextInput::make('discount_valid_days')
+                        ->label('Geldig voor (dagen)')
+                        ->numeric()
+                        ->minValue(1)
+                        ->default(14),
+                    Toggle::make('auto_apply_discount')
+                        ->label('Automatisch toepassen op winkelmand')
+                        ->default(true),
+                ])
+                ->columns(3)
+                ->columnSpanFull(),
+
+            Section::make('Trigger')
+                ->schema([
+                    Select::make('trigger_type')
+                        ->label('Wanneer tonen')
+                        ->options([
+                            'delay' => 'Tijdsvertraging',
+                            'scroll' => 'Scroll-diepte',
+                            'exit_intent' => 'Exit-intent',
+                        ])
+                        ->default('delay')
+                        ->live()
+                        ->required(),
+                    TextInput::make('trigger_value')
+                        ->numeric()
+                        ->default(5)
+                        ->label(fn (Get $get) => match ($get('trigger_type')) {
+                            'scroll' => 'Scroll %',
+                            default => 'Seconden',
+                        })
+                        ->visible(fn (Get $get) => in_array($get('trigger_type'), ['delay', 'scroll'], true)),
+                ])
+                ->columns(2)
+                ->columnSpanFull(),
+
+            Section::make('Display')
+                ->schema([
+                    Toggle::make('active')
+                        ->label('Actief')
+                        ->default(false),
+                    DateTimePicker::make('start_date')
+                        ->label('Start datum')
+                        ->default(now())
+                        ->required(),
+                    DateTimePicker::make('end_date')
+                        ->label('Eind datum')
+                        ->default(now()->addYear())
+                        ->required(),
+                    TextInput::make('show_again_after')
+                        ->label('Opnieuw tonen na (minuten)')
+                        ->helperText('20160 = 14 dagen')
+                        ->default(20160)
+                        ->required()
+                        ->numeric(),
+                ])
+                ->columns(2)
+                ->columnSpanFull(),
+        ]);
     }
 
     public static function table(Table $table): Table
@@ -77,10 +174,32 @@ class PopupResource extends Resource
                     ->formatStateUsing(fn ($state) => ucfirst($state))
                     ->sortable()
                     ->searchable(),
+                TextColumn::make('type')
+                    ->label('Type')
+                    ->badge()
+                    ->sortable(),
+                IconColumn::make('active')
+                    ->label('Actief')
+                    ->boolean(),
+                TextColumn::make('views_count')
+                    ->label('Impressies')
+                    ->counts('views')
+                    ->sortable(),
+                TextColumn::make('submits_count')
+                    ->label('Submits')
+                    ->counts(['views as submits_count' => fn ($q) => $q->whereNotNull('submitted_at')])
+                    ->sortable(),
+                TextColumn::make('conversion')
+                    ->label('Conversie')
+                    ->getStateUsing(function ($record) {
+                        $views = (int) ($record->views_count ?? 0);
+                        $submits = (int) ($record->submits_count ?? 0);
+
+                        return $views > 0 ? round(($submits / $views) * 100, 1) . '%' : '-';
+                    }),
             ])
             ->recordActions([
-                EditAction::make()
-                    ->button(),
+                EditAction::make()->button(),
                 DeleteAction::make(),
             ])
             ->toolbarActions(ToolbarActions::getActions())
@@ -91,8 +210,7 @@ class PopupResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-        ];
+        return [];
     }
 
     public static function getPages(): array

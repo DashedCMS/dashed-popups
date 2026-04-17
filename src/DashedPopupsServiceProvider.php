@@ -16,6 +16,8 @@ class DashedPopupsServiceProvider extends PackageServiceProvider
 
     public function bootingPackage()
     {
+        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'dashed-popups');
+
         Livewire::component('dashed-popups.popup', Popup::class);
 
         //        $this->app->booted(function () {
