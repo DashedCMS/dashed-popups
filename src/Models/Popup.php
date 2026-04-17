@@ -33,6 +33,14 @@ class Popup extends Model
         static::deleting(function ($popup) {
             $popup->views()->delete();
         });
+
+        static::saved(function ($popup) {
+            if ($popup->active && $popup->wasChanged('active')) {
+                static::where('id', '!=', $popup->id)
+                    ->where('active', true)
+                    ->update(['active' => false]);
+            }
+        });
     }
 
     public function views(): HasMany

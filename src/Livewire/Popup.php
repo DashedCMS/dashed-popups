@@ -111,6 +111,7 @@ class Popup extends Component
             $code = $existingCode;
         } else {
             $code = DiscountCode::create([
+                'site_ids' => [\Dashed\DashedCore\Classes\Sites::getActive()],
                 'name' => 'Popup ' . $this->popup->discount_percentage . '% korting',
                 'code' => 'WELKOM-' . strtoupper(Str::random(8)),
                 'type' => 'percentage',
