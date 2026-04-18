@@ -2,14 +2,18 @@
 
 namespace Dashed\DashedPopups\Livewire;
 
-use Livewire\Component;
-use Illuminate\Support\Str;
-use Dashed\DashedPopups\Models\PopupView;
-use Dashed\DashedEcommerceCore\Models\Cart;
-use Illuminate\Support\Facades\RateLimiter;
-use Dashed\DashedEcommerceCore\Models\DiscountCode;
-use Dashed\DashedPopups\Models\Popup as PopupModel;
+use Dashed\DashedCore\Classes\Mails;
+use Dashed\DashedCore\Classes\Sites;
+use Dashed\DashedCore\Notifications\AdminNotifier;
 use Dashed\DashedEcommerceCore\Jobs\AbandonedCart\ScheduleAbandonedCartEmailsForCartJob;
+use Dashed\DashedEcommerceCore\Models\Cart;
+use Dashed\DashedEcommerceCore\Models\DiscountCode;
+use Dashed\DashedPopups\Mail\PopupConversionMail;
+use Dashed\DashedPopups\Models\Popup as PopupModel;
+use Dashed\DashedPopups\Models\PopupView;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
+use Livewire\Component;
 
 class Popup extends Component
 {
@@ -88,7 +92,7 @@ class Popup extends Component
         $validated = $this->validate();
         $email = $validated['email'];
 
-        $rateKey = 'popup-submit:' . request()->ip();
+        $rateKey = 'popup-submit:'.request()->ip();
         if (RateLimiter::tooManyAttempts($rateKey, 3)) {
             $this->addError('email', __('Teveel pogingen. Probeer het later opnieuw.'));
 
@@ -111,9 +115,9 @@ class Popup extends Component
             $code = $existingCode;
         } else {
             $code = DiscountCode::create([
-                'site_ids' => [\Dashed\DashedCore\Classes\Sites::getActive()],
-                'name' => 'Popup ' . $this->popup->discount_percentage . '% korting',
-                'code' => 'WELKOM-' . strtoupper(Str::random(8)),
+                'site_ids' => [Sites::getActive()],
+                'name' => 'Popup '.$this->popup->discount_percentage.'% korting',
+                'code' => 'WELKOM-'.strtoupper(Str::random(8)),
                 'type' => 'percentage',
                 'discount_percentage' => $this->popup->discount_percentage,
                 'use_stock' => true,
@@ -135,10 +139,23 @@ class Popup extends Component
             $this->popupView->update([
                 'submitted_at' => now(),
                 'discount_code_id' => $code->id,
+                'content' => ['email' => $email],
             ]);
         }
 
         dispatch(new ScheduleAbandonedCartEmailsForCartJob($cart->id));
+
+        if ($this->popup->notify_on_conversion && $this->popupView?->wasChanged('submitted_at')) {
+            try {
+                AdminNotifier::send(
+                    new PopupConversionMail($this->popup, $this->popupView->fresh()),
+                    Mails::getAdminNotificationEmails(),
+                    ['telegram'],
+                );
+            } catch (\Throwable $e) {
+                // Silent fail — conversion is already stored; notify failure must not block the UX.
+            }
+        }
 
         $this->discountCode = $code->code;
         $this->showSuccess = true;
@@ -165,10 +182,10 @@ class Popup extends Component
 
     public function render()
     {
-        if ($this->popup && view()->exists('dashed.popups.' . str($this->popup->name ?? '')->slug() . '-popup')) {
-            return view(env('SITE_THEME', 'dashed') . '.popups.' . str($this->popup->name)->slug() . '-popup');
+        if ($this->popup && view()->exists('dashed.popups.'.str($this->popup->name ?? '')->slug().'-popup')) {
+            return view(env('SITE_THEME', 'dashed').'.popups.'.str($this->popup->name)->slug().'-popup');
         }
 
-        return view(env('SITE_THEME', 'dashed') . '.popups.popup');
+        return view(env('SITE_THEME', 'dashed').'.popups.popup');
     }
 }
