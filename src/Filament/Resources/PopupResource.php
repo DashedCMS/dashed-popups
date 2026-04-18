@@ -8,6 +8,7 @@ use Dashed\DashedPopups\Filament\Blocks\PopupBlockRegistry;
 use Dashed\DashedPopups\Filament\Resources\PopupResource\Pages\CreatePopup;
 use Dashed\DashedPopups\Filament\Resources\PopupResource\Pages\EditPopup;
 use Dashed\DashedPopups\Filament\Resources\PopupResource\Pages\ListPopups;
+use Dashed\DashedPopups\Filament\Resources\PopupResource\RelationManagers\ConversionsRelationManager;
 use Dashed\DashedPopups\Models\Popup;
 use Dashed\DashedPopups\PopupTemplates\PopupTemplateRegistry;
 use Filament\Actions\DeleteAction;
@@ -222,7 +223,9 @@ class PopupResource extends Resource
 
     public static function getRelations(): array
     {
-        return [];
+        return [
+            ConversionsRelationManager::class,
+        ];
     }
 
     public static function getPages(): array
