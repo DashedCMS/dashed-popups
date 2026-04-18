@@ -135,6 +135,8 @@ class Popup extends Component
         }
         $cart->update($updates);
 
+        $wasFirstSubmit = $this->popupView && $this->popupView->submitted_at === null;
+
         if ($this->popupView) {
             $this->popupView->update([
                 'submitted_at' => now(),
@@ -145,15 +147,15 @@ class Popup extends Component
 
         dispatch(new ScheduleAbandonedCartEmailsForCartJob($cart->id));
 
-        if ($this->popup->notify_on_conversion && $this->popupView?->wasChanged('submitted_at')) {
+        if ($this->popup->notify_on_conversion && $wasFirstSubmit) {
             try {
                 AdminNotifier::send(
-                    new PopupConversionMail($this->popup, $this->popupView->fresh()),
+                    new PopupConversionMail($this->popup, $this->popupView),
                     Mails::getAdminNotificationEmails(),
                     ['telegram'],
                 );
             } catch (\Throwable $e) {
-                // Silent fail — conversion is already stored; notify failure must not block the UX.
+                report($e);
             }
         }
 
