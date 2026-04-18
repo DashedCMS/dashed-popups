@@ -26,6 +26,7 @@ class Popup extends Model
         'discount_valid_days' => 'integer',
         'trigger_value' => 'integer',
         'show_again_after' => 'integer',
+        'notify_on_conversion' => 'boolean',
     ];
 
     protected static function booted(): void
@@ -46,6 +47,11 @@ class Popup extends Model
     public function views(): HasMany
     {
         return $this->hasMany(PopupView::class);
+    }
+
+    public function conversions(): HasMany
+    {
+        return $this->hasMany(PopupView::class)->whereNotNull('submitted_at');
     }
 
     public function isDiscountType(): bool
