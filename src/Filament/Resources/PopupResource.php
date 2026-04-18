@@ -2,29 +2,29 @@
 
 namespace Dashed\DashedPopups\Filament\Resources;
 
-use UnitEnum;
 use BackedEnum;
-use Filament\Tables\Table;
-use Filament\Schemas\Schema;
-use Filament\Actions\EditAction;
-use Filament\Resources\Resource;
-use Filament\Actions\DeleteAction;
-use Dashed\DashedPopups\Models\Popup;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Toggle;
-use Filament\Forms\Components\Builder;
-use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Forms\Components\TextInput;
-use Filament\Schemas\Components\Section;
-use Filament\Forms\Components\DateTimePicker;
-use Filament\Schemas\Components\Utilities\Get;
-use Dashed\DashedPopups\Filament\Blocks\PopupBlockRegistry;
-use Dashed\DashedPopups\PopupTemplates\PopupTemplateRegistry;
 use Dashed\DashedCore\Classes\Actions\ActionGroups\ToolbarActions;
+use Dashed\DashedPopups\Filament\Blocks\PopupBlockRegistry;
+use Dashed\DashedPopups\Filament\Resources\PopupResource\Pages\CreatePopup;
 use Dashed\DashedPopups\Filament\Resources\PopupResource\Pages\EditPopup;
 use Dashed\DashedPopups\Filament\Resources\PopupResource\Pages\ListPopups;
-use Dashed\DashedPopups\Filament\Resources\PopupResource\Pages\CreatePopup;
+use Dashed\DashedPopups\Models\Popup;
+use Dashed\DashedPopups\PopupTemplates\PopupTemplateRegistry;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\Builder;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+use UnitEnum;
 
 class PopupResource extends Resource
 {
@@ -32,9 +32,9 @@ class PopupResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-archive-box';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-archive-box';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Content';
+    protected static string|UnitEnum|null $navigationGroup = 'Content';
 
     protected static ?string $label = 'Popup';
 
@@ -153,6 +153,10 @@ class PopupResource extends Resource
                     Toggle::make('active')
                         ->label('Actief')
                         ->default(false),
+                    Toggle::make('notify_on_conversion')
+                        ->label('Stuur Telegram-notificatie bij conversie')
+                        ->helperText('Gebruikt de algemene Telegram-bot uit instellingen.')
+                        ->default(false),
                     DateTimePicker::make('start_date')
                         ->label('Start datum')
                         ->default(now())
@@ -203,7 +207,7 @@ class PopupResource extends Resource
                         $views = (int) ($record->views_count ?? 0);
                         $submits = (int) ($record->submits_count ?? 0);
 
-                        return $views > 0 ? round(($submits / $views) * 100, 1) . '%' : '-';
+                        return $views > 0 ? round(($submits / $views) * 100, 1).'%' : '-';
                     }),
             ])
             ->recordActions([
