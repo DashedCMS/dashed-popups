@@ -2,19 +2,27 @@
 
 namespace Dashed\DashedPopups\Filament\Resources\PopupResource\Pages;
 
+use Dashed\DashedPopups\Filament\Resources\PopupResource;
+use Dashed\DashedPopups\Filament\Widgets\PopupPerformanceOverview;
+use Dashed\DashedPopups\Models\Popup;
+use Dashed\DashedPopups\PopupTemplates\PopupTemplateRegistry;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
-use Dashed\DashedPopups\Models\Popup;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
-use Dashed\DashedPopups\Filament\Resources\PopupResource;
-use Dashed\DashedPopups\PopupTemplates\PopupTemplateRegistry;
 
 class ListPopups extends ListRecords
 {
     protected static string $resource = PopupResource::class;
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            PopupPerformanceOverview::class,
+        ];
+    }
 
     protected function getActions(): array
     {
@@ -33,7 +41,7 @@ class ListPopups extends ListRecords
                     TextInput::make('name')
                         ->label('Naam')
                         ->required()
-                        ->default(fn () => 'standaard-' . now()->format('Y-m-d-His')),
+                        ->default(fn () => 'standaard-'.now()->format('Y-m-d-His')),
                 ])
                 ->action(function (array $data) {
                     $attributes = PopupTemplateRegistry::attributesFor($data['template']) ?? [];

@@ -4,6 +4,8 @@ namespace Dashed\DashedPopups\Filament\Resources;
 
 use BackedEnum;
 use Dashed\DashedCore\Classes\Actions\ActionGroups\ToolbarActions;
+use Dashed\DashedPopups\Analytics\MetricsResolver;
+use Dashed\DashedPopups\Analytics\StatusClassifier;
 use Dashed\DashedPopups\Filament\Blocks\PopupBlockRegistry;
 use Dashed\DashedPopups\Filament\Resources\PopupResource\Pages\CreatePopup;
 use Dashed\DashedPopups\Filament\Resources\PopupResource\Pages\EditPopup;
@@ -25,6 +27,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Cache;
 use UnitEnum;
 
 class PopupResource extends Resource
@@ -209,6 +212,48 @@ class PopupResource extends Resource
                         $submits = (int) ($record->submits_count ?? 0);
 
                         return $views > 0 ? round(($submits / $views) * 100, 1).'%' : '-';
+                    }),
+                TextColumn::make('overall_status_30d')
+                    ->label('Status (30d)')
+                    ->badge()
+                    ->colors([
+                        'success' => 'Goed',
+                        'warning' => 'Matig',
+                        'danger' => 'Slecht',
+                        'gray' => fn ($state) => in_array($state, ['Voldoende', 'Weinig data']),
+                    ])
+                    ->getStateUsing(function ($record) {
+                        return Cache::remember(
+                            "popup-list-status:{$record->id}",
+                            300,
+                            function () use ($record) {
+                                $m = app(MetricsResolver::class)
+                                    ->forPopup($record->id, now()->subDays(29), now());
+                                $s = app(StatusClassifier::class)->classify($m);
+
+                                return [
+                                    'excellent' => 'Goed',
+                                    'ok' => 'Voldoende',
+                                    'mediocre' => 'Matig',
+                                    'poor' => 'Slecht',
+                                    'insufficient_data' => 'Weinig data',
+                                ][$s['overall']] ?? '-';
+                            }
+                        );
+                    }),
+                TextColumn::make('bounce_rate_30d')
+                    ->label('Bounce (30d)')
+                    ->getStateUsing(function ($record) {
+                        return Cache::remember(
+                            "popup-list-bounce:{$record->id}",
+                            300,
+                            function () use ($record) {
+                                $m = app(MetricsResolver::class)
+                                    ->forPopup($record->id, now()->subDays(29), now());
+
+                                return $m['views'] > 0 ? number_format($m['bounce_rate'] * 100, 1).'%' : '-';
+                            }
+                        );
                     }),
             ])
             ->recordActions([
