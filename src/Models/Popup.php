@@ -27,6 +27,8 @@ class Popup extends Model
         'trigger_value' => 'integer',
         'show_again_after' => 'integer',
         'notify_on_conversion' => 'boolean',
+        'ai_analysis' => 'array',
+        'ai_analyzed_at' => 'datetime',
     ];
 
     protected static function booted(): void
