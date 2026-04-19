@@ -63,12 +63,18 @@ class StatusClassifier
         $pct = round($value * 100, 1);
         $goodPct = round($good * 100, 1);
         $warnPct = round($warn * 100, 1);
-        $direction = $higherIsBetter ? '≥' : '≤';
+
+        // For higher-is-better metrics, "good" means the value is ABOVE the good threshold.
+        // For lower-is-better (bounce/dismissal), "good" means the value is BELOW the good threshold.
+        $goodWord = $higherIsBetter ? 'boven' : 'onder';
+        $poorWord = $higherIsBetter ? 'onder' : 'boven';
+        $goodSym = $higherIsBetter ? '>=' : '<=';
+        $poorSym = $higherIsBetter ? '<' : '>';
 
         $explanation = match ($level) {
-            'good' => "{$this->label($key)} is {$pct}% — boven drempel ({$direction}{$goodPct}%)",
-            'warn' => "{$this->label($key)} is {$pct}% — tussen drempels ({$warnPct}% / {$goodPct}%)",
-            'poor' => "{$this->label($key)} is {$pct}% — onder drempel ({$direction}{$warnPct}%)",
+            'good' => "{$this->label($key)} is {$pct}% - {$goodWord} drempel ({$goodSym}{$goodPct}%)",
+            'warn' => "{$this->label($key)} is {$pct}% - tussen drempels ({$warnPct}% en {$goodPct}%)",
+            'poor' => "{$this->label($key)} is {$pct}% - {$poorWord} drempel ({$poorSym}{$warnPct}%)",
         };
 
         return ['level' => $level, 'explanation' => $explanation];
