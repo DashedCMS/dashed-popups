@@ -4,6 +4,7 @@ namespace Dashed\DashedPopups\Filament\Resources;
 
 use BackedEnum;
 use Dashed\DashedCore\Classes\Actions\ActionGroups\ToolbarActions;
+use Dashed\DashedEcommerceCore\Classes\CurrencyHelper;
 use Dashed\DashedPopups\Analytics\MetricsResolver;
 use Dashed\DashedPopups\Analytics\StatusClassifier;
 use Dashed\DashedPopups\Filament\Blocks\PopupBlockRegistry;
@@ -252,6 +253,24 @@ class PopupResource extends Resource
                                     ->forPopup($record->id, now()->subDays(29), now());
 
                                 return $m['views'] > 0 ? number_format($m['bounce_rate'] * 100, 1).'%' : '-';
+                            }
+                        );
+                    }),
+                TextColumn::make('revenue_30d')
+                    ->label('Omzet (30d)')
+                    ->alignment('right')
+                    ->sortable(false)
+                    ->getStateUsing(function ($record) {
+                        return Cache::remember(
+                            "popup-list-revenue:{$record->id}",
+                            300,
+                            function () use ($record) {
+                                $m = app(MetricsResolver::class)
+                                    ->forPopup($record->id, now()->subDays(29), now());
+
+                                return $m['revenue'] > 0
+                                    ? CurrencyHelper::formatPrice($m['revenue'])
+                                    : '-';
                             }
                         );
                     }),
