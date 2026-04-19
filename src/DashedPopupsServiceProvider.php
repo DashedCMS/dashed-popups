@@ -2,13 +2,15 @@
 
 namespace Dashed\DashedPopups;
 
-use Livewire\Livewire;
-use Illuminate\Support\Facades\Gate;
+use Dashed\DashedPopups\Commands\RollupPopupStatsCommand;
+use Dashed\DashedPopups\Filament\Resources\PopupResource;
 use Dashed\DashedPopups\Livewire\Popup;
-use Spatie\LaravelPackageTools\Package;
+use Dashed\DashedPopups\Policies\PopupPolicy;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\Gate;
+use Livewire\Livewire;
+use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use Dashed\DashedPopups\Filament\Pages\Settings\PopupSettingsPage;
 
 class DashedPopupsServiceProvider extends PackageServiceProvider
 {
@@ -16,19 +18,31 @@ class DashedPopupsServiceProvider extends PackageServiceProvider
 
     public function bootingPackage()
     {
-        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'dashed-popups');
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'dashed-popups');
 
         Livewire::component('dashed-popups.popup', Popup::class);
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                RollupPopupStatsCommand::class,
+            ]);
+        }
+
+        $this->app->booted(function () {
+            /** @var Schedule $schedule */
+            $schedule = app(Schedule::class);
+            $schedule->command('popups:rollup-stats')->dailyAt('02:00');
+        });
 
         //        $this->app->booted(function () {
         //            $schedule = app(Schedule::class);
         //        });
 
         cms()->builder('plugins', [
-            new DashedPopupsPlugin(),
+            new DashedPopupsPlugin,
         ]);
 
-        Gate::policy(\Dashed\DashedPopups\Models\Popup::class, \Dashed\DashedPopups\Policies\PopupPolicy::class);
+        Gate::policy(Models\Popup::class, PopupPolicy::class);
 
         cms()->registerRolePermissions('Popups', [
             'view_popup' => 'Popups bekijken',
@@ -37,13 +51,13 @@ class DashedPopupsServiceProvider extends PackageServiceProvider
         ]);
 
         cms()->registerResourceDocs(
-            resource: \Dashed\DashedPopups\Filament\Resources\PopupResource::class,
+            resource: PopupResource::class,
             title: 'Popups',
             intro: 'Met popups laat je een boodschap in beeld verschijnen bij bezoekers van de website, bijvoorbeeld voor een actie, nieuwsbrief inschrijving of belangrijke mededeling. Je bepaalt zelf wanneer een popup verschijnt en hoe vaak bezoekers hem te zien krijgen.',
             sections: [
                 [
                     'heading' => 'Wat kun je hier doen?',
-                    'body' => <<<MARKDOWN
+                    'body' => <<<'MARKDOWN'
 - Een nieuwe popup aanmaken met een eigen titel en inhoud.
 - Bestaande popups bewerken of tijdelijk uitschakelen.
 - Per popup instellen wanneer hij start en wanneer hij weer stopt.
@@ -70,22 +84,22 @@ MARKDOWN,
 
     public function configurePackage(Package $package): void
     {
-        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
-        $this->mergeConfigFrom(__DIR__ . '/../config/popups.php', 'popups');
+        $this->mergeConfigFrom(__DIR__.'/../config/popups.php', 'popups');
 
         $this->publishes([
-            __DIR__ . '/../config/popups.php' => config_path('popups.php'),
+            __DIR__.'/../config/popups.php' => config_path('popups.php'),
         ], 'dashed-popups-config');
 
         $this->publishes([
-            __DIR__ . '/../resources/templates' => resource_path('views/' . config('dashed-core.site_theme', 'dashed')),
+            __DIR__.'/../resources/templates' => resource_path('views/'.config('dashed-core.site_theme', 'dashed')),
         ], 'dashed-templates');
 
         $package->name('dashed-popups');
 
         cms()->builder('plugins', [
-            new DashedPopupsPlugin(),
+            new DashedPopupsPlugin,
         ]);
     }
 }
