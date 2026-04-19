@@ -125,6 +125,35 @@
     </div>
 
     <div class="p-4 rounded border border-gray-200">
+        <h3 class="font-semibold mb-3">ROI</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div>
+                <div class="text-xs uppercase text-gray-500">Verzilverd</div>
+                <div class="text-2xl font-semibold text-gray-900">{{ $metrics['redemptions'] }}</div>
+                @if ($metrics['submits'] > 0)
+                    <div class="text-xs text-gray-500 mt-1">
+                        {{ number_format($metrics['redemption_rate'] * 100, 1) }}% van submits
+                    </div>
+                @endif
+            </div>
+            <div>
+                <div class="text-xs uppercase text-gray-500">Omzet</div>
+                <div class="text-2xl font-semibold text-gray-900">{{ \Dashed\DashedEcommerceCore\Classes\CurrencyHelper::formatPrice($metrics['revenue']) }}</div>
+            </div>
+            <div>
+                <div class="text-xs uppercase text-gray-500">Korting</div>
+                <div class="text-2xl font-semibold text-gray-900">{{ \Dashed\DashedEcommerceCore\Classes\CurrencyHelper::formatPrice($metrics['discount_value']) }}</div>
+            </div>
+            <div>
+                <div class="text-xs uppercase text-gray-500">Netto</div>
+                <div class="text-2xl font-semibold {{ $metrics['net_revenue'] > 0 ? 'text-green-700' : 'text-gray-900' }}">
+                    {{ \Dashed\DashedEcommerceCore\Classes\CurrencyHelper::formatPrice($metrics['net_revenue']) }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="p-4 rounded border border-gray-200">
         <div class="flex items-center justify-between">
             <h3 class="font-semibold">AI-analyse</h3>
             @if ($this->aiAvailable())
