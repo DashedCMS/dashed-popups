@@ -8,6 +8,7 @@ use Dashed\DashedCore\Notifications\AdminNotifier;
 use Dashed\DashedEcommerceCore\Jobs\AbandonedCart\ScheduleAbandonedCartEmailsForCartJob;
 use Dashed\DashedEcommerceCore\Models\Cart;
 use Dashed\DashedEcommerceCore\Models\DiscountCode;
+use Dashed\DashedPopups\Analytics\DeviceDetector;
 use Dashed\DashedPopups\Mail\PopupConversionMail;
 use Dashed\DashedPopups\Models\Popup as PopupModel;
 use Dashed\DashedPopups\Models\PopupView;
@@ -66,6 +67,11 @@ class Popup extends Component
                 'first_seen_at' => now(),
                 'last_seen_at' => now(),
                 'seen_count' => 0,
+                'device_type' => app(DeviceDetector::class)->detect(request()->userAgent()),
+                'url' => substr((string) request()->headers->get('referer', ''), 0, 500) ?: null,
+                'referrer' => substr((string) request()->headers->get('x-dashed-referrer', ''), 0, 500) ?: null,
+                'locale' => app()->getLocale(),
+                'triggered_by' => $this->popup->trigger_type ?? 'time',
             ]);
             $this->showPopup = $inWindow;
         } else {
