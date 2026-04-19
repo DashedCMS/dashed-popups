@@ -15,7 +15,8 @@ class RollupPopupStatsCommand extends Command
 
     public function handle(RollupService $rollup): int
     {
-        $days = (int) ($this->option('days') ?: config('popups.analytics.rollup_days', 7));
+        $days = (int) ($this->option('days') ?? config('popups.analytics.rollup_days', 7));
+        $days = max(0, $days);
         $period = CarbonPeriod::create(now()->subDays($days)->startOfDay(), now()->startOfDay());
 
         $popups = Popup::query()->select('id')->get();
