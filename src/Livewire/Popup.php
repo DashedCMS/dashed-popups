@@ -71,7 +71,7 @@ class Popup extends Component
                 'url' => substr((string) request()->headers->get('referer', ''), 0, 500) ?: null,
                 'referrer' => substr((string) request()->headers->get('x-dashed-referrer', ''), 0, 500) ?: null,
                 'locale' => app()->getLocale(),
-                'triggered_by' => $this->popup->trigger_type ?? 'time',
+                'triggered_by' => $this->popup->trigger_type ?? 'delay',
             ]);
             $this->showPopup = $inWindow;
         } else {
