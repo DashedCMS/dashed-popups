@@ -21,6 +21,8 @@ class MetricsResolver
         $sumTts = (int) $rows->sum('sum_time_to_submit_ms');
         $closedTotal = $dismissals + $bounces;
 
+        $redemption = $this->redemption($popupId, $from, $to);
+
         return [
             'period_from' => $from->toDateString(),
             'period_to' => $to->toDateString(),
@@ -54,6 +56,12 @@ class MetricsResolver
                 ])
                 ->values()
                 ->all(),
+
+            'redemptions' => $redemption['redemptions'],
+            'revenue' => $redemption['revenue'],
+            'discount_value' => $redemption['discount_value'],
+            'net_revenue' => $redemption['net_revenue'],
+            'redemption_rate' => $submits > 0 ? $redemption['redemptions'] / $submits : 0.0,
         ];
     }
 
@@ -115,5 +123,29 @@ class MetricsResolver
                 'conversion_rate' => $r->views > 0 ? ((int) $r->submits) / ((int) $r->views) : 0.0,
             ])
             ->all();
+    }
+
+    private function redemption(int $popupId, CarbonInterface $from, CarbonInterface $to): array
+    {
+        $rows = DB::table('dashed__orders as o')
+            ->join('dashed__popup_views as pv', 'pv.discount_code_id', '=', 'o.discount_code_id')
+            ->where('pv.popup_id', $popupId)
+            ->whereNotNull('pv.discount_code_id')
+            ->whereIn('o.status', ['paid', 'partially_paid', 'waiting_for_confirmation'])
+            ->whereNotIn('o.invoice_id', ['PROFORMA', 'RETURN'])
+            ->whereBetween('o.created_at', [$from->copy()->startOfDay(), $to->copy()->endOfDay()])
+            ->selectRaw('o.id, o.total, o.discount, o.created_at')
+            ->groupBy('o.id', 'o.total', 'o.discount', 'o.created_at')
+            ->get();
+
+        $revenue = (float) $rows->sum('total');
+        $discountValue = (float) $rows->sum('discount');
+
+        return [
+            'redemptions' => $rows->count(),
+            'revenue' => $revenue,
+            'discount_value' => $discountValue,
+            'net_revenue' => $revenue - $discountValue,
+        ];
     }
 }
