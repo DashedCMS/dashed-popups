@@ -4,6 +4,7 @@ namespace Dashed\DashedPopups;
 
 use Dashed\DashedPopups\Commands\RollupPopupStatsCommand;
 use Dashed\DashedPopups\Filament\Resources\PopupResource;
+use Dashed\DashedPopups\Livewire\Admin\PopupAnalyticsPanel;
 use Dashed\DashedPopups\Livewire\Popup;
 use Dashed\DashedPopups\Policies\PopupPolicy;
 use Illuminate\Console\Scheduling\Schedule;
@@ -21,6 +22,7 @@ class DashedPopupsServiceProvider extends PackageServiceProvider
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'dashed-popups');
 
         Livewire::component('dashed-popups.popup', Popup::class);
+        Livewire::component('dashed-popups.admin.popup-analytics-panel', PopupAnalyticsPanel::class);
 
         if ($this->app->runningInConsole()) {
             $this->commands([

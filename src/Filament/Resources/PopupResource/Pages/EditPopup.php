@@ -2,11 +2,14 @@
 
 namespace Dashed\DashedPopups\Filament\Resources\PopupResource\Pages;
 
+use Dashed\DashedPopups\Filament\Resources\PopupResource;
+use Dashed\DashedPopups\Models\Popup;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Contracts\View\View;
+use Illuminate\Support\Collection;
 use LaraZeus\SpatieTranslatable\Actions\LocaleSwitcher;
-use Dashed\DashedPopups\Filament\Resources\PopupResource;
 
 class EditPopup extends EditRecord
 {
@@ -18,7 +21,7 @@ class EditPopup extends EditRecord
     {
         foreach (['title', 'blocks'] as $attribute) {
             $value = $this->record->{$attribute};
-            $data[$attribute] = $value instanceof \Illuminate\Support\Collection ? $value->all() : $value;
+            $data[$attribute] = $value instanceof Collection ? $value->all() : $value;
         }
 
         return $data;
@@ -27,7 +30,7 @@ class EditPopup extends EditRecord
     protected function getActions(): array
     {
         return [
-//            LocaleSwitcher::make(),
+            //            LocaleSwitcher::make(),
             Action::make('duplicate')
                 ->action('duplicate')
                 ->button()
@@ -36,11 +39,16 @@ class EditPopup extends EditRecord
         ];
     }
 
+    public function getFooter(): ?View
+    {
+        return view('dashed-popups::filament.popups.edit-footer', ['record' => $this->record]);
+    }
+
     public function duplicate()
     {
         $newRecord = $this->record->replicate();
-        while (\Dashed\DashedPopups\Models\Popup::where('name', $newRecord->name)->exists()) {
-            $newRecord->name = $newRecord->name . ' (kopie)';
+        while (Popup::where('name', $newRecord->name)->exists()) {
+            $newRecord->name = $newRecord->name.' (kopie)';
         }
         $newRecord->save();
 
