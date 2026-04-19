@@ -72,25 +72,17 @@ MARKDOWN,
     {
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
+        $this->mergeConfigFrom(__DIR__ . '/../config/popups.php', 'popups');
+
+        $this->publishes([
+            __DIR__ . '/../config/popups.php' => config_path('popups.php'),
+        ], 'dashed-popups-config');
+
         $this->publishes([
             __DIR__ . '/../resources/templates' => resource_path('views/' . config('dashed-core.site_theme', 'dashed')),
         ], 'dashed-templates');
 
-        //        cms()->builder(
-        //            'settingPages',
-        //            array_merge(cms()->builder('settingPages'), [
-        //                'popupNotifications' => [
-        //                    'name' => 'Popupulier instellingen',
-        //                    'description' => 'Beheer instellingen voor de popupulieren',
-        //                    'icon' => 'bell',
-        //                    'page' => PopupSettingsPage::class,
-        //                ],
-        //            ])
-        //        );
-
-        $package
-            ->name('dashed-popups');
-
+        $package->name('dashed-popups');
 
         cms()->builder('plugins', [
             new DashedPopupsPlugin(),
