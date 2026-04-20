@@ -3,13 +3,12 @@
 namespace Dashed\DashedPopups\Analytics;
 
 use Carbon\CarbonInterface;
+use Dashed\DashedEcommerceCore\Models\Cart;
 use Illuminate\Support\Facades\DB;
 
 class MetricsResolver
 {
-    public function __construct(private readonly RollupService $rollup)
-    {
-    }
+    public function __construct(private readonly RollupService $rollup) {}
 
     public function forPopup(int $popupId, CarbonInterface $from, CarbonInterface $to): array
     {
@@ -60,6 +59,7 @@ class MetricsResolver
                 ->all(),
 
             'redemptions' => $redemption['redemptions'],
+            'cart_applied' => $this->cartApplied($popupId, $from, $to),
             'revenue' => $redemption['revenue'],
             'discount_value' => $redemption['discount_value'],
             'net_revenue' => $redemption['net_revenue'],
@@ -125,6 +125,21 @@ class MetricsResolver
                 'conversion_rate' => $r->views > 0 ? ((int) $r->submits) / ((int) $r->views) : 0.0,
             ])
             ->all();
+    }
+
+    private function cartApplied(int $popupId, CarbonInterface $from, CarbonInterface $to): int
+    {
+        return (int) Cart::query()
+            ->whereNotNull('discount_code_id')
+            ->whereIn('discount_code_id', function ($query) use ($popupId, $from, $to) {
+                $query->select('discount_code_id')
+                    ->from('dashed__popup_views')
+                    ->where('popup_id', $popupId)
+                    ->whereNotNull('discount_code_id')
+                    ->whereBetween('created_at', [$from, $to]);
+            })
+            ->distinct()
+            ->count('id');
     }
 
     private function redemption(int $popupId, CarbonInterface $from, CarbonInterface $to): array
