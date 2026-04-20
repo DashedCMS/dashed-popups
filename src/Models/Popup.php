@@ -51,6 +51,11 @@ class Popup extends Model
         return $this->hasMany(PopupView::class);
     }
 
+    public function variants(): HasMany
+    {
+        return $this->hasMany(PopupVariant::class, 'popup_id');
+    }
+
     public function conversions(): HasMany
     {
         return $this->hasMany(PopupView::class)->whereNotNull('submitted_at');
