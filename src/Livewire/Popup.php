@@ -2,20 +2,21 @@
 
 namespace Dashed\DashedPopups\Livewire;
 
-use Livewire\Component;
-use Illuminate\Support\Str;
 use Dashed\DashedCore\Classes\Mails;
 use Dashed\DashedCore\Classes\Sites;
-use Illuminate\Support\Facades\Auth;
-use Dashed\DashedPopups\Models\PopupView;
+use Dashed\DashedCore\Notifications\AdminNotifier;
+use Dashed\DashedEcommerceCore\Jobs\AbandonedCart\ScheduleAbandonedCartEmailsForCartJob;
 use Dashed\DashedEcommerceCore\Models\Cart;
-use Illuminate\Support\Facades\RateLimiter;
+use Dashed\DashedEcommerceCore\Models\DiscountCode;
 use Dashed\DashedPopups\Analytics\DeviceDetector;
 use Dashed\DashedPopups\Mail\PopupConversionMail;
-use Dashed\DashedCore\Notifications\AdminNotifier;
-use Dashed\DashedEcommerceCore\Models\DiscountCode;
 use Dashed\DashedPopups\Models\Popup as PopupModel;
-use Dashed\DashedEcommerceCore\Jobs\AbandonedCart\ScheduleAbandonedCartEmailsForCartJob;
+use Dashed\DashedPopups\Models\PopupVariant;
+use Dashed\DashedPopups\Models\PopupView;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
+use Livewire\Component;
 
 class Popup extends Component
 {
@@ -90,6 +91,14 @@ class Popup extends Component
                 'triggered_by' => $this->popup->trigger_type ?? 'delay',
             ]);
             $this->showPopup = $inWindow;
+
+            if ($popupView->variant_id === null) {
+                $variant = PopupVariant::pickForPopup($this->popup->id);
+                if ($variant) {
+                    $popupView->variant_id = $variant->id;
+                    $popupView->save();
+                }
+            }
         } else {
             $cooldownPassed = ! $popupView->closed_at
                 || $popupView->closed_at < now()->subMinutes((int) ($this->popup->show_again_after ?? 0));
@@ -163,9 +172,16 @@ class Popup extends Component
 
         $cart = cartHelper()->getCart();
 
+        $variant = $this->popupView?->variant;
+        $codePrefix = $variant?->code_prefix
+            ? 'WELKOM-'.strtoupper($variant->code_prefix).'-'
+            : 'WELKOM-';
+        $discountPercentage = $variant?->resolvedDiscountPercentage() ?? (int) $this->popup->discount_percentage;
+        $validDays = $variant?->resolvedValidDays() ?? (int) $this->popup->discount_valid_days;
+
         $existingCartWithCode = Cart::where('abandoned_email', $email)
             ->whereNotNull('discount_code_id')
-            ->whereHas('discountCode', fn ($q) => $q->where('code', 'like', 'WELKOM-%'))
+            ->whereHas('discountCode', fn ($q) => $q->where('code', 'like', $codePrefix.'%'))
             ->with('discountCode')
             ->latest()
             ->first();
@@ -177,16 +193,16 @@ class Popup extends Component
         } else {
             $code = DiscountCode::create([
                 'site_ids' => [Sites::getActive()],
-                'name' => 'Popup '.$this->popup->discount_percentage.'% korting',
-                'code' => 'WELKOM-'.strtoupper(Str::random(8)),
+                'name' => 'Popup '.$discountPercentage.'% korting',
+                'code' => $codePrefix.strtoupper(Str::random(8)),
                 'type' => 'percentage',
-                'discount_percentage' => $this->popup->discount_percentage,
+                'discount_percentage' => $discountPercentage,
                 'use_stock' => true,
                 'stock' => 1,
                 'limit_use_per_customer' => true,
                 'minimal_requirements' => false,
                 'start_date' => now(),
-                'end_date' => now()->addDays((int) ($this->popup->discount_valid_days ?? 14)),
+                'end_date' => now()->addDays($validDays),
             ]);
         }
 
