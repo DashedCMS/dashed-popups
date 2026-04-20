@@ -2,16 +2,18 @@
 
 namespace Dashed\DashedPopups;
 
-use Livewire\Livewire;
-use Illuminate\Support\Facades\Gate;
-use Dashed\DashedPopups\Livewire\Popup;
-use Spatie\LaravelPackageTools\Package;
-use Illuminate\Console\Scheduling\Schedule;
-use Dashed\DashedPopups\Policies\PopupPolicy;
-use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Dashed\DashedPopups\Commands\RollupPopupStatsCommand;
 use Dashed\DashedPopups\Filament\Resources\PopupResource;
+use Dashed\DashedPopups\Filament\Widgets\PopupFunnelWidget;
+use Dashed\DashedPopups\Filament\Widgets\PopupPerformanceOverview;
 use Dashed\DashedPopups\Livewire\Admin\PopupAnalyticsPanel;
+use Dashed\DashedPopups\Livewire\Popup;
+use Dashed\DashedPopups\Policies\PopupPolicy;
+use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\Gate;
+use Livewire\Livewire;
+use Spatie\LaravelPackageTools\Package;
+use Spatie\LaravelPackageTools\PackageServiceProvider;
 
 class DashedPopupsServiceProvider extends PackageServiceProvider
 {
@@ -23,7 +25,8 @@ class DashedPopupsServiceProvider extends PackageServiceProvider
 
         Livewire::component('dashed-popups.popup', Popup::class);
         Livewire::component('dashed-popups.admin.popup-analytics-panel', PopupAnalyticsPanel::class);
-        Livewire::component('dashed.dashed-popups.filament.widgets.popup-performance-overview', \Dashed\DashedPopups\Filament\Widgets\PopupPerformanceOverview::class);
+        Livewire::component('dashed.dashed-popups.filament.widgets.popup-performance-overview', PopupPerformanceOverview::class);
+        Livewire::component('dashed.dashed-popups.filament.widgets.popup-funnel-widget', PopupFunnelWidget::class);
 
         if ($this->app->runningInConsole()) {
             $this->commands([
@@ -42,7 +45,7 @@ class DashedPopupsServiceProvider extends PackageServiceProvider
         //        });
 
         cms()->builder('plugins', [
-            new DashedPopupsPlugin(),
+            new DashedPopupsPlugin,
         ]);
 
         Gate::policy(Models\Popup::class, PopupPolicy::class);
@@ -102,7 +105,7 @@ MARKDOWN,
         $package->name('dashed-popups');
 
         cms()->builder('plugins', [
-            new DashedPopupsPlugin(),
+            new DashedPopupsPlugin,
         ]);
     }
 }
