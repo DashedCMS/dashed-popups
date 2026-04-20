@@ -6,6 +6,7 @@ use Livewire\Component;
 use Illuminate\Support\Str;
 use Dashed\DashedCore\Classes\Mails;
 use Dashed\DashedCore\Classes\Sites;
+use Illuminate\Support\Facades\Auth;
 use Dashed\DashedPopups\Models\PopupView;
 use Dashed\DashedEcommerceCore\Models\Cart;
 use Illuminate\Support\Facades\RateLimiter;
@@ -53,6 +54,19 @@ class Popup extends Component
             return;
         }
 
+        $user = Auth::user();
+        $identityEmail = $this->resolveIdentityEmail($user);
+
+        // Discount popups would give a customer with custom/contract pricing an extra discount on top.
+        if ($this->popup->isDiscountType() && $user && ($user->has_custom_pricing ?? false)) {
+            return;
+        }
+
+        // Skip if this user or email has already seen this popup in any prior session.
+        if ($this->alreadySeenByIdentity($user?->id, $identityEmail)) {
+            return;
+        }
+
         $popupView = $this->popup->views()
             ->where('session_id', session()->getId())
             ->first();
@@ -64,6 +78,8 @@ class Popup extends Component
                 'ip_address' => request()->ip(),
                 'user_agent' => request()->userAgent() ?? '',
                 'session_id' => session()->getId(),
+                'user_id' => $user?->id,
+                'email' => $identityEmail,
                 'first_seen_at' => now(),
                 'last_seen_at' => now(),
                 'seen_count' => 0,
@@ -78,6 +94,19 @@ class Popup extends Component
             $cooldownPassed = ! $popupView->closed_at
                 || $popupView->closed_at < now()->subMinutes((int) ($this->popup->show_again_after ?? 0));
             $this->showPopup = $inWindow && $cooldownPassed;
+
+            $identityDirty = false;
+            if ($user && ! $popupView->user_id) {
+                $popupView->user_id = $user->id;
+                $identityDirty = true;
+            }
+            if ($identityEmail && ! $popupView->email) {
+                $popupView->email = $identityEmail;
+                $identityDirty = true;
+            }
+            if ($identityDirty) {
+                $popupView->save();
+            }
         }
 
         $this->popupView = $popupView;
@@ -87,6 +116,32 @@ class Popup extends Component
             $this->popupView->last_seen_at = now();
             $this->popupView->save();
         }
+    }
+
+    protected function resolveIdentityEmail($user): ?string
+    {
+        $email = $user?->email ?? session('popup_identity_email');
+
+        return $email ? strtolower(trim($email)) : null;
+    }
+
+    protected function alreadySeenByIdentity(?int $userId, ?string $email): bool
+    {
+        if (! $userId && ! $email) {
+            return false;
+        }
+
+        return $this->popup->views()
+            ->where('session_id', '!=', session()->getId())
+            ->where(function ($q) use ($userId, $email) {
+                if ($userId) {
+                    $q->orWhere('user_id', $userId);
+                }
+                if ($email) {
+                    $q->orWhere('email', $email);
+                }
+            })
+            ->exists();
     }
 
     public function submitEmail(): void
@@ -147,9 +202,12 @@ class Popup extends Component
             $this->popupView->update([
                 'submitted_at' => now(),
                 'discount_code_id' => $code->id,
+                'email' => strtolower(trim($email)),
                 'content' => ['email' => $email],
             ]);
         }
+
+        session(['popup_identity_email' => strtolower(trim($email))]);
 
         dispatch(new ScheduleAbandonedCartEmailsForCartJob($cart->id));
 
