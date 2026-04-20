@@ -5,6 +5,7 @@ namespace Dashed\DashedPopups\Models;
 use Illuminate\Database\Eloquent\Model;
 use Dashed\DashedEcommerceCore\Models\DiscountCode;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Dashed\DashedPopups\Models\PopupVariant;
 
 class PopupView extends Model
 {
@@ -30,5 +31,10 @@ class PopupView extends Model
     public function discountCode(): BelongsTo
     {
         return $this->belongsTo(DiscountCode::class);
+    }
+
+    public function variant(): BelongsTo
+    {
+        return $this->belongsTo(PopupVariant::class, 'variant_id');
     }
 }
