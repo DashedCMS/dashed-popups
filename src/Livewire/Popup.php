@@ -2,19 +2,19 @@
 
 namespace Dashed\DashedPopups\Livewire;
 
+use Livewire\Component;
+use Illuminate\Support\Str;
 use Dashed\DashedCore\Classes\Mails;
 use Dashed\DashedCore\Classes\Sites;
-use Dashed\DashedCore\Notifications\AdminNotifier;
-use Dashed\DashedEcommerceCore\Jobs\AbandonedCart\ScheduleAbandonedCartEmailsForCartJob;
+use Dashed\DashedPopups\Models\PopupView;
 use Dashed\DashedEcommerceCore\Models\Cart;
-use Dashed\DashedEcommerceCore\Models\DiscountCode;
+use Illuminate\Support\Facades\RateLimiter;
 use Dashed\DashedPopups\Analytics\DeviceDetector;
 use Dashed\DashedPopups\Mail\PopupConversionMail;
+use Dashed\DashedCore\Notifications\AdminNotifier;
+use Dashed\DashedEcommerceCore\Models\DiscountCode;
 use Dashed\DashedPopups\Models\Popup as PopupModel;
-use Dashed\DashedPopups\Models\PopupView;
-use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Str;
-use Livewire\Component;
+use Dashed\DashedEcommerceCore\Jobs\AbandonedCart\ScheduleAbandonedCartEmailsForCartJob;
 
 class Popup extends Component
 {

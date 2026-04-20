@@ -2,12 +2,12 @@
 
 namespace Dashed\DashedPopups\Filament\Widgets;
 
-use Dashed\DashedEcommerceCore\Classes\CurrencyHelper;
-use Dashed\DashedPopups\Analytics\MetricsResolver;
 use Dashed\DashedPopups\Models\Popup;
+use Illuminate\Support\Facades\Cache;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use Illuminate\Support\Facades\Cache;
+use Dashed\DashedPopups\Analytics\MetricsResolver;
+use Dashed\DashedEcommerceCore\Classes\CurrencyHelper;
 
 class PopupPerformanceOverview extends StatsOverviewWidget
 {

@@ -7,7 +7,9 @@ use Illuminate\Support\Facades\DB;
 
 class MetricsResolver
 {
-    public function __construct(private readonly RollupService $rollup) {}
+    public function __construct(private readonly RollupService $rollup)
+    {
+    }
 
     public function forPopup(int $popupId, CarbonInterface $from, CarbonInterface $to): array
     {

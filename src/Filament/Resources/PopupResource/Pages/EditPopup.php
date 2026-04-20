@@ -2,14 +2,14 @@
 
 namespace Dashed\DashedPopups\Filament\Resources\PopupResource\Pages;
 
-use Dashed\DashedPopups\Filament\Resources\PopupResource;
-use Dashed\DashedPopups\Models\Popup;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
-use Filament\Resources\Pages\EditRecord;
-use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
+use Illuminate\Contracts\View\View;
+use Dashed\DashedPopups\Models\Popup;
+use Filament\Resources\Pages\EditRecord;
 use LaraZeus\SpatieTranslatable\Actions\LocaleSwitcher;
+use Dashed\DashedPopups\Filament\Resources\PopupResource;
 
 class EditPopup extends EditRecord
 {

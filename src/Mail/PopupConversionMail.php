@@ -2,13 +2,13 @@
 
 namespace Dashed\DashedPopups\Mail;
 
-use Dashed\DashedCore\Notifications\Contracts\SendsToTelegram;
-use Dashed\DashedCore\Notifications\DTOs\TelegramSummary;
-use Dashed\DashedPopups\Models\Popup;
-use Dashed\DashedPopups\Models\PopupView;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Dashed\DashedPopups\Models\Popup;
 use Illuminate\Queue\SerializesModels;
+use Dashed\DashedPopups\Models\PopupView;
+use Dashed\DashedCore\Notifications\DTOs\TelegramSummary;
+use Dashed\DashedCore\Notifications\Contracts\SendsToTelegram;
 
 class PopupConversionMail extends Mailable implements SendsToTelegram
 {

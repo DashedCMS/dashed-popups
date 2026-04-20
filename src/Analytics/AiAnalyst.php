@@ -3,12 +3,14 @@
 namespace Dashed\DashedPopups\Analytics;
 
 use Dashed\DashedAi\AiManager;
-use Dashed\DashedAi\Enums\AiCapability;
 use Dashed\DashedPopups\Models\Popup;
+use Dashed\DashedAi\Enums\AiCapability;
 
 class AiAnalyst
 {
-    public function __construct(private readonly AiManager $ai) {}
+    public function __construct(private readonly AiManager $ai)
+    {
+    }
 
     public function isAvailable(): bool
     {

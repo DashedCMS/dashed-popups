@@ -3,7 +3,22 @@
     $status = $this->status();
     $ai = $this->popup->ai_analysis;
     $aiAt = $this->popup->ai_analyzed_at;
-    $levels = ['good' => 'bg-green-100 text-green-700', 'warn' => 'bg-amber-100 text-amber-700', 'poor' => 'bg-red-100 text-red-700', 'insufficient_data' => 'bg-gray-100 text-gray-600'];
+
+    $levelBadge = [
+        'good' => 'bg-success-50 text-success-700 ring-success-600/20 dark:bg-success-400/10 dark:text-success-400 dark:ring-success-400/30',
+        'warn' => 'bg-warning-50 text-warning-700 ring-warning-600/20 dark:bg-warning-400/10 dark:text-warning-400 dark:ring-warning-400/30',
+        'poor' => 'bg-danger-50 text-danger-700 ring-danger-600/20 dark:bg-danger-400/10 dark:text-danger-400 dark:ring-danger-400/30',
+        'insufficient_data' => 'bg-gray-50 text-gray-600 ring-gray-500/10 dark:bg-white/5 dark:text-gray-400 dark:ring-white/10',
+    ];
+
+    $overallBadge = [
+        'excellent' => 'bg-success-50 text-success-700 ring-success-600/20 dark:bg-success-400/10 dark:text-success-400 dark:ring-success-400/30',
+        'ok' => 'bg-primary-50 text-primary-700 ring-primary-600/20 dark:bg-primary-400/10 dark:text-primary-400 dark:ring-primary-400/30',
+        'mediocre' => 'bg-warning-50 text-warning-700 ring-warning-600/20 dark:bg-warning-400/10 dark:text-warning-400 dark:ring-warning-400/30',
+        'poor' => 'bg-danger-50 text-danger-700 ring-danger-600/20 dark:bg-danger-400/10 dark:text-danger-400 dark:ring-danger-400/30',
+        'insufficient_data' => 'bg-gray-50 text-gray-600 ring-gray-500/10 dark:bg-white/5 dark:text-gray-400 dark:ring-white/10',
+    ];
+
     $overallLabel = [
         'excellent' => 'Goed',
         'ok' => 'Voldoende',
@@ -11,204 +26,258 @@
         'poor' => 'Slecht',
         'insufficient_data' => 'Weinig data',
     ];
+
     $pct = fn ($v) => number_format(((float) $v) * 100, 1) . '%';
+    $num = fn ($v) => number_format((int) $v, 0, ',', '.');
+
+    $card = 'rounded-xl bg-white dark:bg-gray-900 ring-1 ring-gray-950/5 dark:ring-white/10 shadow-sm';
+    $headingClass = 'text-sm font-semibold text-gray-950 dark:text-white';
+    $labelClass = 'text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400';
+    $metricClass = 'text-2xl font-semibold tracking-tight text-gray-950 dark:text-white';
 @endphp
 
 <div class="space-y-6" wire:poll.30s>
-    <div class="flex items-center justify-between">
-        <div class="flex gap-3 items-center">
-            <label class="text-sm text-gray-600">Periode:</label>
-            <select wire:model.live="period" class="text-sm rounded border-gray-300">
+    {{-- Header: period selector + overall status --}}
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex items-center gap-3">
+            <label for="popup-analytics-period" class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Periode
+            </label>
+            <select
+                id="popup-analytics-period"
+                wire:model.live="period"
+                class="block rounded-lg border-0 bg-white py-1.5 pl-3 pr-10 text-sm text-gray-950 ring-1 ring-inset ring-gray-950/10 transition focus:ring-2 focus:ring-primary-600 dark:bg-white/5 dark:text-white dark:ring-white/10 dark:focus:ring-primary-500"
+            >
                 <option value="1">Vandaag</option>
                 <option value="7">Laatste 7 dagen</option>
                 <option value="30">Laatste 30 dagen</option>
                 <option value="90">Laatste 90 dagen</option>
             </select>
         </div>
-        <div>
-            <span class="text-sm px-3 py-1 rounded-full font-semibold {{ $levels[$status['overall']] ?? '' }}">
-                {{ $overallLabel[$status['overall']] ?? $status['overall'] }}
-            </span>
-        </div>
+
+        <span class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium ring-1 ring-inset {{ $overallBadge[$status['overall']] ?? $overallBadge['insufficient_data'] }}">
+            <span class="size-1.5 rounded-full bg-current"></span>
+            {{ $overallLabel[$status['overall']] ?? $status['overall'] }}
+        </span>
     </div>
 
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    {{-- KPI tiles --}}
+    <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
         @foreach ([
-            ['Views', $metrics['views'], null, null],
-            ['Submits', $metrics['submits'], 'conversion_rate', $pct($metrics['conversion_rate'])],
-            ['Dismissals', $metrics['dismissals'], 'dismissal_rate', $pct($metrics['dismissal_rate'])],
-            ['Bounces (<2s)', $metrics['bounces'], 'bounce_rate', $pct($metrics['bounce_rate'])],
-        ] as [$label, $n, $mKey, $ratio])
-            <div class="p-4 rounded border border-gray-200">
-                <div class="text-xs uppercase text-gray-500">{{ $label }}</div>
-                <div class="text-2xl font-semibold text-gray-900">{{ $n }}</div>
+            ['Impressies', $metrics['views'], null, null, null, null],
+            ['Submits', $metrics['submits'], 'conversion_rate', $pct($metrics['conversion_rate']), 'conversie', 'heroicon-m-check-circle'],
+            ['Wegklik', $metrics['dismissals'], 'dismissal_rate', $pct($metrics['dismissal_rate']), 'wegklik-rate', 'heroicon-m-x-circle'],
+            ['Bounces (<2s)', $metrics['bounces'], 'bounce_rate', $pct($metrics['bounce_rate']), 'bounce-rate', 'heroicon-m-arrow-uturn-left'],
+        ] as [$label, $value, $mKey, $ratio, $ratioLabel, $icon])
+            <div class="{{ $card }} p-4">
+                <div class="{{ $labelClass }}">{{ $label }}</div>
+                <div class="mt-2 {{ $metricClass }}">{{ $num($value) }}</div>
+
                 @if ($mKey && isset($status['per_metric'][$mKey]))
-                    <div class="mt-1 flex items-center gap-2">
-                        <span class="text-xs px-2 py-0.5 rounded {{ $levels[$status['per_metric'][$mKey]['level']] ?? '' }}">{{ $ratio }}</span>
-                        <span class="text-xs text-gray-500" title="{{ $status['per_metric'][$mKey]['explanation'] }}">ⓘ</span>
+                    <div class="mt-3 flex items-center gap-2">
+                        <span class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset {{ $levelBadge[$status['per_metric'][$mKey]['level']] ?? '' }}">
+                            {{ $ratio }}
+                        </span>
+                        <span
+                            class="text-xs text-gray-500 dark:text-gray-400"
+                            title="{{ $status['per_metric'][$mKey]['explanation'] }}"
+                        >
+                            {{ $ratioLabel }}
+                        </span>
                     </div>
+                @else
+                    <div class="mt-3 h-[1.375rem]"></div>
                 @endif
             </div>
         @endforeach
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="p-4 rounded border border-gray-200">
-            <h3 class="font-semibold mb-2">Per device</h3>
-            <table class="w-full text-sm">
-                <thead class="text-xs text-gray-500 text-left">
-                    <tr><th class="py-1">Device</th><th>Views</th><th>Submits</th><th>Conversie</th></tr>
-                </thead>
-                <tbody>
-                    @forelse ($metrics['by_device'] as $row)
-                        <tr class="border-t">
-                            <td class="py-1">{{ $row['key'] }}</td>
-                            <td>{{ $row['views'] }}</td>
-                            <td>{{ $row['submits'] }}</td>
-                            <td>{{ $pct($row['conversion_rate']) }}</td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="4" class="py-2 text-gray-500">Geen data</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-        <div class="p-4 rounded border border-gray-200">
-            <h3 class="font-semibold mb-2">Per trigger</h3>
-            <table class="w-full text-sm">
-                <thead class="text-xs text-gray-500 text-left">
-                    <tr><th class="py-1">Trigger</th><th>Views</th><th>Submits</th><th>Conversie</th></tr>
-                </thead>
-                <tbody>
-                    @forelse ($metrics['by_trigger'] as $row)
-                        <tr class="border-t">
-                            <td class="py-1">{{ $row['key'] }}</td>
-                            <td>{{ $row['views'] }}</td>
-                            <td>{{ $row['submits'] }}</td>
-                            <td>{{ $pct($row['conversion_rate']) }}</td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="4" class="py-2 text-gray-500">Geen data</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+    {{-- Breakdown: device + trigger --}}
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        @foreach ([
+            ['Per device', $metrics['by_device'], 'Device'],
+            ['Per trigger', $metrics['by_trigger'], 'Trigger'],
+        ] as [$title, $rows, $colLabel])
+            <div class="{{ $card }} p-5">
+                <h3 class="{{ $headingClass }}">{{ $title }}</h3>
+                <div class="mt-4 overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="text-left {{ $labelClass }}">
+                                <th class="pb-3 font-medium">{{ $colLabel }}</th>
+                                <th class="pb-3 text-right font-medium">Impressies</th>
+                                <th class="pb-3 text-right font-medium">Submits</th>
+                                <th class="pb-3 text-right font-medium">Conversie</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                            @forelse ($rows as $row)
+                                <tr>
+                                    <td class="py-2 text-gray-950 dark:text-white">{{ $row['key'] }}</td>
+                                    <td class="py-2 text-right tabular-nums text-gray-700 dark:text-gray-300">{{ $num($row['views']) }}</td>
+                                    <td class="py-2 text-right tabular-nums text-gray-700 dark:text-gray-300">{{ $num($row['submits']) }}</td>
+                                    <td class="py-2 text-right tabular-nums text-gray-700 dark:text-gray-300">{{ $pct($row['conversion_rate']) }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                                        Geen data
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @endforeach
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="p-4 rounded border border-gray-200">
-            <h3 class="font-semibold mb-2">Top URLs</h3>
-            <ul class="text-sm space-y-1">
-                @forelse ($metrics['top_urls'] as $r)
-                    <li class="flex justify-between border-t pt-1" title="{{ $r['value'] }}">
-                        <span class="truncate max-w-[18rem]">{{ \Illuminate\Support\Str::limit($r['value'], 30) }}</span>
-                        <span class="text-gray-500">{{ $r['views'] }} · {{ $pct($r['conversion_rate']) }}</span>
-                    </li>
-                @empty
-                    <li class="text-gray-500">Geen data</li>
-                @endforelse
-            </ul>
-        </div>
-        <div class="p-4 rounded border border-gray-200">
-            <h3 class="font-semibold mb-2">Top referrers</h3>
-            <ul class="text-sm space-y-1">
-                @forelse ($metrics['top_referrers'] as $r)
-                    <li class="flex justify-between border-t pt-1" title="{{ $r['value'] }}">
-                        <span class="truncate max-w-[18rem]">{{ \Illuminate\Support\Str::limit($r['value'], 30) }}</span>
-                        <span class="text-gray-500">{{ $r['views'] }} · {{ $pct($r['conversion_rate']) }}</span>
-                    </li>
-                @empty
-                    <li class="text-gray-500">Geen data</li>
-                @endforelse
-            </ul>
-        </div>
+    {{-- Top URLs + referrers --}}
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        @foreach ([
+            ['Top URLs', $metrics['top_urls']],
+            ['Top referrers', $metrics['top_referrers']],
+        ] as [$title, $rows])
+            <div class="{{ $card }} p-5">
+                <h3 class="{{ $headingClass }}">{{ $title }}</h3>
+                <ul class="mt-4 divide-y divide-gray-100 dark:divide-white/5">
+                    @forelse ($rows as $r)
+                        <li class="flex items-center justify-between gap-4 py-2 text-sm" title="{{ $r['value'] }}">
+                            <span class="truncate text-gray-950 dark:text-white">
+                                {{ \Illuminate\Support\Str::limit($r['value'], 40) ?: '—' }}
+                            </span>
+                            <span class="shrink-0 tabular-nums text-gray-500 dark:text-gray-400">
+                                {{ $num($r['views']) }} · {{ $pct($r['conversion_rate']) }}
+                            </span>
+                        </li>
+                    @empty
+                        <li class="py-4 text-center text-sm text-gray-500 dark:text-gray-400">Geen data</li>
+                    @endforelse
+                </ul>
+            </div>
+        @endforeach
     </div>
 
-    <div class="p-4 rounded border border-gray-200">
-        <h3 class="font-semibold mb-3">ROI</h3>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    {{-- ROI --}}
+    <div class="{{ $card }} p-5">
+        <div class="flex items-center justify-between">
+            <h3 class="{{ $headingClass }}">ROI</h3>
+            @if ($metrics['submits'] > 0)
+                <span class="text-xs text-gray-500 dark:text-gray-400">
+                    {{ number_format($metrics['redemption_rate'] * 100, 1) }}% van submits verzilverd
+                </span>
+            @endif
+        </div>
+        <div class="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4">
             <div>
-                <div class="text-xs uppercase text-gray-500">Verzilverd</div>
-                <div class="text-2xl font-semibold text-gray-900">{{ $metrics['redemptions'] }}</div>
-                @if ($metrics['submits'] > 0)
-                    <div class="text-xs text-gray-500 mt-1">
-                        {{ number_format($metrics['redemption_rate'] * 100, 1) }}% van submits
-                    </div>
-                @endif
+                <div class="{{ $labelClass }}">Verzilverd</div>
+                <div class="mt-2 {{ $metricClass }}">{{ $num($metrics['redemptions']) }}</div>
             </div>
             <div>
-                <div class="text-xs uppercase text-gray-500">Omzet</div>
-                <div class="text-2xl font-semibold text-gray-900">{{ \Dashed\DashedEcommerceCore\Classes\CurrencyHelper::formatPrice($metrics['revenue']) }}</div>
+                <div class="{{ $labelClass }}">Omzet</div>
+                <div class="mt-2 {{ $metricClass }}">
+                    {{ \Dashed\DashedEcommerceCore\Classes\CurrencyHelper::formatPrice($metrics['revenue']) }}
+                </div>
             </div>
             <div>
-                <div class="text-xs uppercase text-gray-500">Korting</div>
-                <div class="text-2xl font-semibold text-gray-900">{{ \Dashed\DashedEcommerceCore\Classes\CurrencyHelper::formatPrice($metrics['discount_value']) }}</div>
+                <div class="{{ $labelClass }}">Korting</div>
+                <div class="mt-2 {{ $metricClass }}">
+                    {{ \Dashed\DashedEcommerceCore\Classes\CurrencyHelper::formatPrice($metrics['discount_value']) }}
+                </div>
             </div>
             <div>
-                <div class="text-xs uppercase text-gray-500">Netto</div>
-                <div class="text-2xl font-semibold {{ $metrics['net_revenue'] > 0 ? 'text-green-700' : 'text-gray-900' }}">
+                <div class="{{ $labelClass }}">Netto</div>
+                <div class="mt-2 text-2xl font-semibold tracking-tight {{ $metrics['net_revenue'] > 0 ? 'text-success-600 dark:text-success-400' : 'text-gray-950 dark:text-white' }}">
                     {{ \Dashed\DashedEcommerceCore\Classes\CurrencyHelper::formatPrice($metrics['net_revenue']) }}
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="p-4 rounded border border-gray-200">
-        <div class="flex items-center justify-between">
-            <h3 class="font-semibold">AI-analyse</h3>
+    {{-- AI analysis --}}
+    <div class="{{ $card }} p-5">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h3 class="{{ $headingClass }}">AI-analyse</h3>
+                @if ($aiAt)
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        Geanalyseerd op {{ optional($aiAt)->format('d-m-Y H:i') }}{{ isset($ai['provider']) ? ' door ' . $ai['provider'] : '' }}
+                    </p>
+                @endif
+            </div>
+
             @if ($this->aiAvailable())
-                <button type="button" wire:click="requestAiAnalysis" wire:loading.attr="disabled"
-                        class="text-sm px-3 py-1 rounded bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50">
+                <button
+                    type="button"
+                    wire:click="requestAiAnalysis"
+                    wire:loading.attr="disabled"
+                    wire:target="requestAiAnalysis"
+                    class="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-600 focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-gray-900"
+                >
+                    <svg wire:loading wire:target="requestAiAnalysis" class="size-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
                     {{ $ai ? 'Ververs analyse' : 'Vraag AI om analyse' }}
                 </button>
             @else
-                <span class="text-xs text-gray-500">Geen AI-provider geconfigureerd</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400">Geen AI-provider geconfigureerd</span>
             @endif
         </div>
 
         @if ($aiError)
-            <div class="mt-2 text-sm text-red-600">{{ $aiError }}</div>
+            <div class="mt-4 rounded-lg bg-danger-50 px-3 py-2 text-sm text-danger-700 ring-1 ring-inset ring-danger-600/20 dark:bg-danger-400/10 dark:text-danger-400 dark:ring-danger-400/30">
+                {{ $aiError }}
+            </div>
         @endif
 
         @if ($ai)
-            <p class="mt-3 text-gray-800">{{ $ai['overall_verdict'] ?? '' }}</p>
+            @if (! empty($ai['overall_verdict']))
+                <p class="mt-4 text-sm leading-6 text-gray-700 dark:text-gray-300">
+                    {{ $ai['overall_verdict'] }}
+                </p>
+            @endif
 
             @if (! empty($ai['strengths']))
-                <div class="mt-3">
-                    <div class="text-xs uppercase text-gray-500">Sterke punten</div>
-                    <div class="flex flex-wrap gap-2 mt-1">
+                <div class="mt-5">
+                    <div class="{{ $labelClass }}">Sterke punten</div>
+                    <div class="mt-2 flex flex-wrap gap-2">
                         @foreach ($ai['strengths'] as $s)
-                            <span class="px-2 py-0.5 rounded bg-green-100 text-green-700 text-xs">{{ $s }}</span>
+                            <span class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset {{ $levelBadge['good'] }}">
+                                {{ $s }}
+                            </span>
                         @endforeach
                     </div>
                 </div>
             @endif
 
             @if (! empty($ai['concerns']))
-                <div class="mt-3">
-                    <div class="text-xs uppercase text-gray-500">Zorgen</div>
-                    <div class="flex flex-wrap gap-2 mt-1">
+                <div class="mt-4">
+                    <div class="{{ $labelClass }}">Zorgen</div>
+                    <div class="mt-2 flex flex-wrap gap-2">
                         @foreach ($ai['concerns'] as $c)
-                            <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-700 text-xs">{{ $c }}</span>
+                            <span class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset {{ $levelBadge['warn'] }}">
+                                {{ $c }}
+                            </span>
                         @endforeach
                     </div>
                 </div>
             @endif
 
             @if (! empty($ai['recommendations']))
-                <div class="mt-3">
-                    <div class="text-xs uppercase text-gray-500">Aanbevelingen</div>
-                    <ol class="list-decimal ml-5 mt-1 text-sm text-gray-800 space-y-1">
+                <div class="mt-4">
+                    <div class="{{ $labelClass }}">Aanbevelingen</div>
+                    <ol class="mt-2 list-decimal space-y-1 pl-5 text-sm text-gray-700 dark:text-gray-300">
                         @foreach ($ai['recommendations'] as $r)
                             <li>{{ $r }}</li>
                         @endforeach
                     </ol>
                 </div>
             @endif
-
-            <div class="mt-3 text-xs text-gray-500">
-                Geanalyseerd op {{ optional($aiAt)->format('d-m-Y H:i') }}{{ isset($ai['provider']) ? ' door ' . $ai['provider'] : '' }}
-            </div>
+        @elseif (! $aiError)
+            <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">
+                Nog geen AI-analyse beschikbaar voor deze popup.
+            </p>
         @endif
     </div>
 </div>

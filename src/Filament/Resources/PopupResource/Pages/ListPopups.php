@@ -2,16 +2,16 @@
 
 namespace Dashed\DashedPopups\Filament\Resources\PopupResource\Pages;
 
-use Dashed\DashedPopups\Filament\Resources\PopupResource;
-use Dashed\DashedPopups\Filament\Widgets\PopupPerformanceOverview;
-use Dashed\DashedPopups\Models\Popup;
-use Dashed\DashedPopups\PopupTemplates\PopupTemplateRegistry;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
+use Dashed\DashedPopups\Models\Popup;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
+use Dashed\DashedPopups\Filament\Resources\PopupResource;
+use Dashed\DashedPopups\PopupTemplates\PopupTemplateRegistry;
+use Dashed\DashedPopups\Filament\Widgets\PopupPerformanceOverview;
 
 class ListPopups extends ListRecords
 {

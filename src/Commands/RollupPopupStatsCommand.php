@@ -3,9 +3,9 @@
 namespace Dashed\DashedPopups\Commands;
 
 use Carbon\CarbonPeriod;
-use Dashed\DashedPopups\Analytics\RollupService;
-use Dashed\DashedPopups\Models\Popup;
 use Illuminate\Console\Command;
+use Dashed\DashedPopups\Models\Popup;
+use Dashed\DashedPopups\Analytics\RollupService;
 
 class RollupPopupStatsCommand extends Command
 {

@@ -2,12 +2,12 @@
 
 namespace Dashed\DashedPopups\Livewire\Admin;
 
+use Livewire\Component;
+use Livewire\Attributes\Computed;
+use Dashed\DashedPopups\Models\Popup;
 use Dashed\DashedPopups\Analytics\AiAnalyst;
 use Dashed\DashedPopups\Analytics\MetricsResolver;
 use Dashed\DashedPopups\Analytics\StatusClassifier;
-use Dashed\DashedPopups\Models\Popup;
-use Livewire\Attributes\Computed;
-use Livewire\Component;
 
 class PopupAnalyticsPanel extends Component
 {
