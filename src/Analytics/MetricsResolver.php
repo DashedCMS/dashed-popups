@@ -4,6 +4,8 @@ namespace Dashed\DashedPopups\Analytics;
 
 use Carbon\CarbonInterface;
 use Dashed\DashedEcommerceCore\Models\Cart;
+use Dashed\DashedPopups\Models\PopupVariant;
+use Dashed\DashedPopups\Models\PopupView;
 use Illuminate\Support\Facades\DB;
 
 class MetricsResolver
@@ -44,6 +46,7 @@ class MetricsResolver
 
             'by_device' => $this->groupedRates($rows, 'device_type'),
             'by_trigger' => $this->groupedRates($rows, 'triggered_by'),
+            'by_variant' => $this->byVariant($popupId, $from, $to),
 
             'top_urls' => $this->topRaw($popupId, $from, $to, 'url'),
             'top_referrers' => $this->topRaw($popupId, $from, $to, 'referrer'),
@@ -65,6 +68,61 @@ class MetricsResolver
             'net_revenue' => $redemption['net_revenue'],
             'redemption_rate' => $submits > 0 ? $redemption['redemptions'] / $submits : 0.0,
         ];
+    }
+
+    public function forPopupVariant(int $variantId, CarbonInterface $from, CarbonInterface $to): array
+    {
+        $views = PopupView::query()
+            ->where('variant_id', $variantId)
+            ->whereBetween('created_at', [$from, $to])
+            ->count();
+
+        $submits = PopupView::query()
+            ->where('variant_id', $variantId)
+            ->whereNotNull('submitted_at')
+            ->whereBetween('created_at', [$from, $to])
+            ->count();
+
+        $redemption = DB::table('dashed__orders as o')
+            ->join('dashed__popup_views as v', 'v.discount_code_id', '=', 'o.discount_code_id')
+            ->where('v.variant_id', $variantId)
+            ->whereIn('o.status', ['paid', 'partially_paid', 'waiting_for_confirmation'])
+            ->whereBetween('o.created_at', [$from, $to])
+            ->selectRaw('COUNT(DISTINCT o.id) as redemptions, COALESCE(SUM(o.total), 0) as revenue')
+            ->first();
+
+        $conversionRate = $views > 0 ? round(($submits / $views) * 100, 1) : 0.0;
+        $redemptionRate = $submits > 0 ? round(((int) $redemption->redemptions / $submits) * 100, 1) : 0.0;
+
+        return [
+            'views' => $views,
+            'submits' => $submits,
+            'conversion_rate' => $conversionRate,
+            'redemptions' => (int) $redemption->redemptions,
+            'revenue' => (float) $redemption->revenue,
+            'redemption_rate' => $redemptionRate,
+        ];
+    }
+
+    private function byVariant(int $popupId, CarbonInterface $from, CarbonInterface $to): array
+    {
+        $variants = PopupVariant::query()
+            ->where('popup_id', $popupId)
+            ->orderBy('sort_order')
+            ->get();
+
+        return $variants->map(function ($variant) use ($from, $to) {
+            $metrics = $this->forPopupVariant($variant->id, $from, $to);
+
+            return [
+                'id' => $variant->id,
+                'name' => $variant->name,
+                'code_prefix' => $variant->code_prefix,
+                'enabled' => $variant->enabled,
+                'split_weight' => $variant->split_weight,
+                ...$metrics,
+            ];
+        })->all();
     }
 
     private function trend(int $popupId, CarbonInterface $to): ?float
