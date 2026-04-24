@@ -55,6 +55,10 @@ class Popup extends Component
             return;
         }
 
+        if (! $this->popup->shouldShowFor(request())) {
+            return;
+        }
+
         $user = Auth::user();
         $identityEmail = $this->resolveIdentityEmail($user);
 
