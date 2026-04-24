@@ -280,4 +280,66 @@
             </p>
         @endif
     </div>
+
+    {{-- Breakdown tabellen per dimensie --}}
+    @php
+        $dimensions = [
+            ['label' => 'Per URL', 'rows' => $this->breakdownByUrl, 'key_label' => 'URL'],
+            ['label' => 'Per device', 'rows' => $this->breakdownByDevice, 'key_label' => 'Device'],
+            ['label' => 'Per taal', 'rows' => $this->breakdownByLocale, 'key_label' => 'Locale'],
+            ['label' => 'Per referrer', 'rows' => $this->breakdownByReferrer, 'key_label' => 'Referrer'],
+        ];
+        $isDiscount = $this->popup->type === 'discount';
+    @endphp
+
+    <section class="space-y-4 pt-6 border-t border-gray-950/5 dark:border-white/10">
+        <header>
+            <h3 class="{{ $headingClass }}">Waar komt de activiteit vandaan?</h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                @if ($isDiscount)
+                    Views, submits en toegeschreven omzet per bron.
+                @else
+                    Views en submits per bron. Omzet-attributie werkt alleen voor korting-popups.
+                @endif
+            </p>
+        </header>
+
+        <div class="grid gap-4 md:grid-cols-2">
+            @foreach ($dimensions as $dim)
+                <div class="{{ $card }} p-4">
+                    <h4 class="{{ $labelClass }}">{{ $dim['label'] }}</h4>
+                    @if ($dim['rows']->isEmpty())
+                        <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">Nog geen data voor deze periode.</p>
+                    @else
+                        <table class="mt-3 w-full text-sm">
+                            <thead class="text-left text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                <tr>
+                                    <th class="pb-2 pr-2">{{ $dim['key_label'] }}</th>
+                                    <th class="pb-2 pr-2 text-right">Views</th>
+                                    <th class="pb-2 pr-2 text-right">Submits</th>
+                                    @if ($isDiscount)
+                                        <th class="pb-2 pr-2 text-right">Conv.</th>
+                                        <th class="pb-2 text-right">Omzet</th>
+                                    @endif
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-950/5 dark:divide-white/10">
+                                @foreach ($dim['rows']->take(10) as $row)
+                                    <tr>
+                                        <td class="py-1.5 pr-2 text-gray-950 dark:text-white truncate max-w-[14rem]" title="{{ $row->key }}">{{ $row->key }}</td>
+                                        <td class="py-1.5 pr-2 text-right text-gray-700 dark:text-gray-300">{{ $num($row->views) }}</td>
+                                        <td class="py-1.5 pr-2 text-right text-gray-700 dark:text-gray-300">{{ $num($row->submits) }}</td>
+                                        @if ($isDiscount)
+                                            <td class="py-1.5 pr-2 text-right text-gray-700 dark:text-gray-300">{{ $num($row->redemptions) }}</td>
+                                            <td class="py-1.5 text-right text-gray-950 dark:text-white font-medium">&euro; {{ number_format($row->revenue, 2, ',', '.') }}</td>
+                                        @endif
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @endif
+                </div>
+            @endforeach
+        </div>
+    </section>
 </div>

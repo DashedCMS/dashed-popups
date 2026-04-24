@@ -38,6 +38,50 @@ class PopupAnalyticsPanel extends Component
     }
 
     #[Computed]
+    public function breakdownByUrl(): \Illuminate\Support\Collection
+    {
+        return app(MetricsResolver::class)->breakdownBy(
+            $this->popup->id,
+            'url',
+            now()->subDays((int) $this->period - 1)->startOfDay(),
+            now()->endOfDay(),
+        );
+    }
+
+    #[Computed]
+    public function breakdownByDevice(): \Illuminate\Support\Collection
+    {
+        return app(MetricsResolver::class)->breakdownBy(
+            $this->popup->id,
+            'device_type',
+            now()->subDays((int) $this->period - 1)->startOfDay(),
+            now()->endOfDay(),
+        );
+    }
+
+    #[Computed]
+    public function breakdownByLocale(): \Illuminate\Support\Collection
+    {
+        return app(MetricsResolver::class)->breakdownBy(
+            $this->popup->id,
+            'locale',
+            now()->subDays((int) $this->period - 1)->startOfDay(),
+            now()->endOfDay(),
+        );
+    }
+
+    #[Computed]
+    public function breakdownByReferrer(): \Illuminate\Support\Collection
+    {
+        return app(MetricsResolver::class)->breakdownBy(
+            $this->popup->id,
+            'referrer_domain',
+            now()->subDays((int) $this->period - 1)->startOfDay(),
+            now()->endOfDay(),
+        );
+    }
+
+    #[Computed]
     public function status(): array
     {
         return app(StatusClassifier::class)->classify($this->metrics());
