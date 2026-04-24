@@ -19,10 +19,13 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Builder;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Radio;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
@@ -180,6 +183,56 @@ class PopupResource extends Resource
                 ])
                 ->columns(2)
                 ->columnSpanFull(),
+
+            Section::make('Weergave')
+                ->schema([
+                    Radio::make('visibility_mode')
+                        ->label('Waar tonen?')
+                        ->options([
+                            'everywhere' => 'Overal',
+                            'only_selection' => 'Alleen op de selectie hieronder',
+                        ])
+                        ->default('everywhere')
+                        ->required()
+                        ->live()
+                        ->columnSpanFull(),
+
+                    Section::make('Tonen op')
+                        ->visible(fn (Get $get) => $get('visibility_mode') === 'only_selection')
+                        ->schema([
+                            Repeater::make('include_url_patterns')
+                                ->label('URL-patronen')
+                                ->helperText('Bijvoorbeeld /shop/*, /checkout')
+                                ->simple(
+                                    TextInput::make('pattern')
+                                        ->placeholder('/shop/*')
+                                        ->required()
+                                )
+                                ->dehydrated(false)
+                                ->columnSpanFull(),
+
+                            static::modelTargetingFieldset('include'),
+                        ])
+                        ->columnSpanFull(),
+
+                    Section::make('Uitsluiten op')
+                        ->schema([
+                            Repeater::make('exclude_url_patterns')
+                                ->label('URL-patronen')
+                                ->helperText('Deze winnen altijd van include-regels')
+                                ->simple(
+                                    TextInput::make('pattern')
+                                        ->placeholder('/checkout')
+                                        ->required()
+                                )
+                                ->dehydrated(false)
+                                ->columnSpanFull(),
+
+                            static::modelTargetingFieldset('exclude'),
+                        ])
+                        ->columnSpanFull(),
+                ])
+                ->columnSpanFull(),
         ]);
     }
 
@@ -304,6 +357,44 @@ class PopupResource extends Resource
             ConversionsRelationManager::class,
             VariantsRelationManager::class,
         ];
+    }
+
+    protected static function modelTargetingFieldset(string $ruleType): Fieldset
+    {
+        $fields = [];
+        foreach (cms()->builder('routeModels') ?? [] as $key => $routeModel) {
+            $modelClass = $routeModel['class'] ?? null;
+            if (! $modelClass || ! class_exists($modelClass)) {
+                continue;
+            }
+            $label = $routeModel['name'] ?? $key;
+            $nameField = $routeModel['nameField'] ?? 'name';
+
+            $fields[] = Radio::make("target_mode_{$ruleType}_{$key}")
+                ->label("Zichtbaar op {$label}")
+                ->options([
+                    'none' => 'Geen beperking',
+                    'all' => "Alle {$label}",
+                    'selected' => 'Geselecteerde items',
+                ])
+                ->default('none')
+                ->live()
+                ->dehydrated(false)
+                ->columnSpanFull();
+
+            $fields[] = Select::make("target_ids_{$ruleType}_{$key}")
+                ->label("Selecteer {$label}")
+                ->multiple()
+                ->searchable()
+                ->options(fn () => $modelClass::query()->limit(200)->pluck($nameField, 'id')->all())
+                ->visible(fn (Get $get) => $get("target_mode_{$ruleType}_{$key}") === 'selected')
+                ->dehydrated(false)
+                ->columnSpanFull();
+        }
+
+        return Fieldset::make('Per modeltype')
+            ->schema($fields)
+            ->columns(1);
     }
 
     public static function getPages(): array

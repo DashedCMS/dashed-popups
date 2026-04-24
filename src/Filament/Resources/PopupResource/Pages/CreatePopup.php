@@ -5,11 +5,13 @@ namespace Dashed\DashedPopups\Filament\Resources\PopupResource\Pages;
 use Filament\Resources\Pages\CreateRecord;
 use LaraZeus\SpatieTranslatable\Actions\LocaleSwitcher;
 use Dashed\DashedPopups\Filament\Resources\PopupResource;
+use Dashed\DashedPopups\Filament\Resources\PopupResource\Concerns\SyncsPopupTargets;
 use LaraZeus\SpatieTranslatable\Resources\Pages\CreateRecord\Concerns\Translatable;
 
 class CreatePopup extends CreateRecord
 {
     //    use Translatable;
+    use SyncsPopupTargets;
 
     protected static string $resource = PopupResource::class;
 
@@ -32,5 +34,10 @@ class CreatePopup extends CreateRecord
         }
 
         return $data;
+    }
+
+    protected function afterCreate(): void
+    {
+        $this->syncPopupTargets($this->record, $this->data);
     }
 }
