@@ -2,6 +2,25 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.8.2 - 2026-04-24
+
+### Added
+
+- `matched_order_id` op popup-conversies (`PopupView`): koppelt conversies
+  automatisch aan een betaalde order binnen 30 dagen via `discount_code_id`
+  of `email`. De "Conversies"-tab op een popup toont nu een vinkje +
+  tooltip + link naar de order.
+- `PopupOrderMatcher` service met twee ingangen: `matchView` (per conversie)
+  en `matchForOrder` (wanneer een order paid wordt).
+- Automatische trigger: `OrderPopupMatchObserver` vindt kandidaten zodra
+  een order `paid` / `waiting_for_confirmation` / `partially_paid` wordt.
+- Command `php artisan dashed-popups:backfill-order-matches` om bestaande
+  conversies terugwerkend te koppelen. Accepteert `--chunk=500`.
+- Filter "Heeft order" in de Conversies-tabel.
+
+Matches zijn eenmalig: een eenmaal gekoppelde conversie krijgt nooit een
+andere order toegewezen. `user_id`-match valt buiten scope.
+
 ## 4.8.0 - 2026-04-24
 
 ### Added

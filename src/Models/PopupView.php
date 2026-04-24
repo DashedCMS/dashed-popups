@@ -19,6 +19,7 @@ class PopupView extends Model
         'closed_at' => 'datetime',
         'submitted_at' => 'datetime',
         'discount_code_id' => 'integer',
+        'matched_order_id' => 'integer',
         'user_id' => 'integer',
         'content' => 'array',
     ];
@@ -36,5 +37,14 @@ class PopupView extends Model
     public function variant(): BelongsTo
     {
         return $this->belongsTo(PopupVariant::class, 'variant_id');
+    }
+
+    public function matchedOrder(): ?\Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        if (! class_exists(\Dashed\DashedEcommerceCore\Models\Order::class)) {
+            return null;
+        }
+
+        return $this->belongsTo(\Dashed\DashedEcommerceCore\Models\Order::class, 'matched_order_id');
     }
 }

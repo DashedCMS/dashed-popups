@@ -2,6 +2,7 @@
 
 namespace Dashed\DashedPopups;
 
+use Dashed\DashedPopups\Commands\BackfillPopupOrderMatchesCommand;
 use Dashed\DashedPopups\Commands\RollupPopupStatsCommand;
 use Dashed\DashedPopups\Filament\Resources\PopupResource;
 use Dashed\DashedPopups\Filament\Widgets\PopupFunnelWidget;
@@ -31,6 +32,7 @@ class DashedPopupsServiceProvider extends PackageServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 RollupPopupStatsCommand::class,
+                BackfillPopupOrderMatchesCommand::class,
             ]);
         }
 
@@ -47,6 +49,12 @@ class DashedPopupsServiceProvider extends PackageServiceProvider
         cms()->builder('plugins', [
             new DashedPopupsPlugin,
         ]);
+
+        if (class_exists(\Dashed\DashedEcommerceCore\Models\Order::class)) {
+            \Dashed\DashedEcommerceCore\Models\Order::observe(
+                \Dashed\DashedPopups\Observers\OrderPopupMatchObserver::class
+            );
+        }
 
         Gate::policy(Models\Popup::class, PopupPolicy::class);
 

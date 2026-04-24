@@ -8,6 +8,7 @@ use Filament\Actions\ViewAction;
 use Filament\Tables\Filters\Filter;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\DatePicker;
 use Illuminate\Database\Eloquent\Builder;
@@ -30,6 +31,26 @@ class ConversionsRelationManager extends RelationManager
             TextEntry::make('submitted_at')->label('Tijdstip')->dateTime('d-m-Y H:i'),
             TextEntry::make('discountCode.code')->label('Kortingscode')->copyable(),
             TextEntry::make('ip_address')->label('IP'),
+            TextEntry::make('matched_order_id')
+                ->label('Gekoppelde order')
+                ->formatStateUsing(function ($state, $record) {
+                    if (! $state) {
+                        return 'Nog geen order gekoppeld';
+                    }
+                    $invoice = $record->matchedOrder?->invoice_id;
+
+                    return $invoice ? 'Order #'.$invoice : 'Order #'.$state;
+                })
+                ->url(function ($record) {
+                    if (! $record->matched_order_id) {
+                        return null;
+                    }
+                    if (! class_exists(\Dashed\DashedEcommerceCore\Filament\Resources\OrderResource::class)) {
+                        return null;
+                    }
+
+                    return \Dashed\DashedEcommerceCore\Filament\Resources\OrderResource::getUrl('edit', ['record' => $record->matched_order_id]);
+                }, shouldOpenInNewTab: true),
             KeyValueEntry::make('content')->label('Ingevoerde gegevens'),
         ]);
     }
@@ -47,6 +68,26 @@ class ConversionsRelationManager extends RelationManager
                     ->label('Email')
                     ->copyable()
                     ->searchable(),
+                IconColumn::make('matched_order_id')
+                    ->label('Order')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-check-circle')
+                    ->trueColor('success')
+                    ->falseIcon('heroicon-o-minus')
+                    ->falseColor('gray')
+                    ->tooltip(fn ($record) => $record->matched_order_id
+                        ? 'Order #'.($record->matchedOrder?->invoice_id ?? $record->matched_order_id)
+                        : 'Nog geen order gekoppeld')
+                    ->url(function ($record) {
+                        if (! $record->matched_order_id) {
+                            return null;
+                        }
+                        if (! class_exists(\Dashed\DashedEcommerceCore\Filament\Resources\OrderResource::class)) {
+                            return null;
+                        }
+
+                        return \Dashed\DashedEcommerceCore\Filament\Resources\OrderResource::getUrl('edit', ['record' => $record->matched_order_id]);
+                    }, shouldOpenInNewTab: true),
                 TextColumn::make('discountCode.code')
                     ->label('Kortingscode')
                     ->copyable()
@@ -61,6 +102,12 @@ class ConversionsRelationManager extends RelationManager
                     ->queries(
                         true: fn (Builder $q) => $q->whereNotNull('discount_code_id'),
                         false: fn (Builder $q) => $q->whereNull('discount_code_id'),
+                    ),
+                TernaryFilter::make('has_matched_order')
+                    ->label('Heeft order')
+                    ->queries(
+                        true: fn (Builder $q) => $q->whereNotNull('matched_order_id'),
+                        false: fn (Builder $q) => $q->whereNull('matched_order_id'),
                     ),
                 Filter::make('submitted_at')
                     ->schema([
