@@ -48,11 +48,16 @@ class PopupTargetingService
 
     protected function resolveCurrentModel(Request $request): ?Model
     {
-        if ($request->attributes->has('dashed.current_visitable')) {
-            return $request->attributes->get('dashed.current_visitable');
+        $candidate = $request->attributes->get('dashed.current_visitable');
+        if ($candidate instanceof Model) {
+            return $candidate;
         }
+
         if (app()->bound('dashed.current_visitable')) {
-            return app('dashed.current_visitable');
+            $bound = app('dashed.current_visitable');
+            if ($bound instanceof Model) {
+                return $bound;
+            }
         }
 
         return null;
@@ -61,7 +66,7 @@ class PopupTargetingService
     protected function matches(PopupTarget $target, string $path, ?Model $model): bool
     {
         if ($target->match_type === 'url_pattern' && $target->pattern) {
-            return Str::is($target->pattern, $path);
+            return Str::is($this->normalizePath($target->pattern), $path);
         }
 
         if (! $model || ! $target->targetable_type) {
@@ -74,7 +79,7 @@ class PopupTargetingService
 
         if ($target->match_type === 'specific_model') {
             return $model instanceof $target->targetable_type
-                && (int) $model->getKey() === (int) $target->targetable_id;
+                && (string) $model->getKey() === (string) $target->targetable_id;
         }
 
         return false;
