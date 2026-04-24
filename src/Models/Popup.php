@@ -2,9 +2,11 @@
 
 namespace Dashed\DashedPopups\Models;
 
+use Dashed\DashedPopups\Services\PopupTargetingService;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\Translatable\HasTranslations;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Http\Request;
+use Spatie\Translatable\HasTranslations;
 
 class Popup extends Model
 {
@@ -61,25 +63,24 @@ class Popup extends Model
         return $this->hasMany(PopupView::class)->whereNotNull('submitted_at');
     }
 
-    public function targets(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function targets(): HasMany
     {
         return $this->hasMany(PopupTarget::class, 'popup_id');
     }
 
-    public function includeTargets(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function includeTargets(): HasMany
     {
         return $this->hasMany(PopupTarget::class, 'popup_id')->where('rule_type', PopupTarget::RULE_INCLUDE);
     }
 
-    public function excludeTargets(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function excludeTargets(): HasMany
     {
         return $this->hasMany(PopupTarget::class, 'popup_id')->where('rule_type', PopupTarget::RULE_EXCLUDE);
     }
 
-    public function shouldShowFor(\Illuminate\Http\Request $request): bool
+    public function shouldShowFor(Request $request): bool
     {
-        return app(\Dashed\DashedPopups\Services\PopupTargetingService::class)
-            ->shouldShow($this, $request);
+        return app(PopupTargetingService::class)->shouldShow($this, $request);
     }
 
     public function isDiscountType(): bool

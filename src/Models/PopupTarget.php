@@ -2,6 +2,7 @@
 
 namespace Dashed\DashedPopups\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -26,6 +27,10 @@ class PopupTarget extends Model
         'targetable_id',
     ];
 
+    protected $casts = [
+        'targetable_id' => 'integer',
+    ];
+
     public function popup(): BelongsTo
     {
         return $this->belongsTo(Popup::class);
@@ -36,12 +41,12 @@ class PopupTarget extends Model
         return $this->morphTo();
     }
 
-    public function scopeIncludes($query)
+    public function scopeIncludes(Builder $query): Builder
     {
         return $query->where('rule_type', self::RULE_INCLUDE);
     }
 
-    public function scopeExcludes($query)
+    public function scopeExcludes(Builder $query): Builder
     {
         return $query->where('rule_type', self::RULE_EXCLUDE);
     }
