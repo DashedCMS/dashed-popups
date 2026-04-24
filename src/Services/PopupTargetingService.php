@@ -49,18 +49,8 @@ class PopupTargetingService
     protected function resolveCurrentModel(Request $request): ?Model
     {
         $candidate = $request->attributes->get('dashed.current_visitable');
-        if ($candidate instanceof Model) {
-            return $candidate;
-        }
 
-        if (app()->bound('dashed.current_visitable')) {
-            $bound = app('dashed.current_visitable');
-            if ($bound instanceof Model) {
-                return $bound;
-            }
-        }
-
-        return null;
+        return $candidate instanceof Model ? $candidate : null;
     }
 
     protected function matches(PopupTarget $target, string $path, ?Model $model): bool
