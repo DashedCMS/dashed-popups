@@ -105,6 +105,19 @@ class MetricsResolver
         ];
     }
 
+    /**
+     * Breakdown popup metrics per dimension bucket.
+     *
+     * Returned objects carry: key, views, submits, redemptions, revenue,
+     * discount_value, net_revenue. Buckets with views but no orders are
+     * included with zeroed revenue figures.
+     *
+     * Note on cross-bucket double-count: redemptions/revenue are derived
+     * from an orders x popup_views join on discount_code_id. If two views
+     * with different dimension values happen to share the same
+     * discount_code_id, the matching order is counted in BOTH buckets.
+     * In practice discount codes are minted per-view, so this is rare.
+     */
     public function breakdownBy(
         int $popupId,
         string $dimension,
@@ -118,7 +131,19 @@ class MetricsResolver
 
         $column = $dimension === 'referrer_domain' ? 'referrer' : $dimension;
 
-        $rows = DB::table('dashed__orders as o')
+        $viewRows = PopupView::query()
+            ->where('popup_id', $popupId)
+            ->whereBetween('created_at', [$from->copy()->startOfDay(), $to->copy()->endOfDay()])
+            ->get(['id', 'submitted_at', $column]);
+
+        $viewAgg = $viewRows
+            ->groupBy(fn ($v) => $this->normalizeDimensionValue($dimension, $v->{$column} ?? ''))
+            ->map(fn ($group) => (object) [
+                'views' => $group->count(),
+                'submits' => $group->whereNotNull('submitted_at')->count(),
+            ]);
+
+        $revenueRows = DB::table('dashed__orders as o')
             ->join('dashed__popup_views as pv', 'pv.discount_code_id', '=', 'o.discount_code_id')
             ->where('pv.popup_id', $popupId)
             ->whereNotNull('pv.discount_code_id')
@@ -126,22 +151,37 @@ class MetricsResolver
             ->whereNotIn('o.invoice_id', ['PROFORMA', 'RETURN'])
             ->whereBetween('o.created_at', [$from->copy()->startOfDay(), $to->copy()->endOfDay()])
             ->selectRaw("pv.{$column} as dim_value, o.id as order_id, o.total, o.discount")
-            ->groupBy('pv.'.$column, 'o.id', 'o.total', 'o.discount')
             ->get();
 
-        $grouped = collect($rows)->groupBy(fn ($r) => $this->normalizeDimensionValue($dimension, $r->dim_value ?? ''));
+        $revenueAgg = collect($revenueRows)
+            ->groupBy(fn ($r) => $this->normalizeDimensionValue($dimension, $r->dim_value ?? ''))
+            ->map(function ($group) {
+                $unique = $group->unique('order_id');
+                $revenue = (float) $unique->sum('total');
+                $discount = (float) $unique->sum('discount');
 
-        return $grouped->map(function ($group, $key) {
-            $orderIds = $group->pluck('order_id')->unique();
-            $revenue = (float) $group->unique('order_id')->sum('total');
-            $discountValue = (float) $group->unique('order_id')->sum('discount');
+                return (object) [
+                    'redemptions' => $unique->count(),
+                    'revenue' => $revenue,
+                    'discount_value' => $discount,
+                    'net_revenue' => $revenue - $discount,
+                ];
+            });
+
+        $keys = $viewAgg->keys()->merge($revenueAgg->keys())->unique();
+
+        return $keys->map(function ($key) use ($viewAgg, $revenueAgg) {
+            $v = $viewAgg->get($key);
+            $r = $revenueAgg->get($key);
 
             return (object) [
                 'key' => $key,
-                'redemptions' => $orderIds->count(),
-                'revenue' => $revenue,
-                'discount_value' => $discountValue,
-                'net_revenue' => $revenue - $discountValue,
+                'views' => $v->views ?? 0,
+                'submits' => $v->submits ?? 0,
+                'redemptions' => $r->redemptions ?? 0,
+                'revenue' => $r->revenue ?? 0.0,
+                'discount_value' => $r->discount_value ?? 0.0,
+                'net_revenue' => $r->net_revenue ?? 0.0,
             ];
         })->sortByDesc('revenue')->values();
     }
