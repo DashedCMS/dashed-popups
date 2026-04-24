@@ -61,6 +61,27 @@ class Popup extends Model
         return $this->hasMany(PopupView::class)->whereNotNull('submitted_at');
     }
 
+    public function targets(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PopupTarget::class, 'popup_id');
+    }
+
+    public function includeTargets(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PopupTarget::class, 'popup_id')->where('rule_type', PopupTarget::RULE_INCLUDE);
+    }
+
+    public function excludeTargets(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PopupTarget::class, 'popup_id')->where('rule_type', PopupTarget::RULE_EXCLUDE);
+    }
+
+    public function shouldShowFor(\Illuminate\Http\Request $request): bool
+    {
+        return app(\Dashed\DashedPopups\Services\PopupTargetingService::class)
+            ->shouldShow($this, $request);
+    }
+
     public function isDiscountType(): bool
     {
         return $this->type === 'discount';
