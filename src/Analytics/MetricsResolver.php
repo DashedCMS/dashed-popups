@@ -6,6 +6,7 @@ use Carbon\CarbonInterface;
 use Dashed\DashedEcommerceCore\Models\Cart;
 use Dashed\DashedPopups\Models\PopupVariant;
 use Dashed\DashedPopups\Models\PopupView;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class MetricsResolver
@@ -102,6 +103,82 @@ class MetricsResolver
             'revenue' => (float) $redemption->revenue,
             'redemption_rate' => $redemptionRate,
         ];
+    }
+
+    public function breakdownBy(
+        int $popupId,
+        string $dimension,
+        CarbonInterface $from,
+        CarbonInterface $to
+    ): Collection {
+        $allowed = ['url', 'device_type', 'locale', 'referrer_domain'];
+        if (! in_array($dimension, $allowed, true)) {
+            throw new \InvalidArgumentException("Unsupported dimension: {$dimension}");
+        }
+
+        $column = $dimension === 'referrer_domain' ? 'referrer' : $dimension;
+
+        $rows = DB::table('dashed__orders as o')
+            ->join('dashed__popup_views as pv', 'pv.discount_code_id', '=', 'o.discount_code_id')
+            ->where('pv.popup_id', $popupId)
+            ->whereNotNull('pv.discount_code_id')
+            ->whereIn('o.status', ['paid', 'partially_paid', 'waiting_for_confirmation'])
+            ->whereNotIn('o.invoice_id', ['PROFORMA', 'RETURN'])
+            ->whereBetween('o.created_at', [$from->copy()->startOfDay(), $to->copy()->endOfDay()])
+            ->selectRaw("pv.{$column} as dim_value, o.id as order_id, o.total, o.discount")
+            ->groupBy('pv.'.$column, 'o.id', 'o.total', 'o.discount')
+            ->get();
+
+        $grouped = collect($rows)->groupBy(fn ($r) => $this->normalizeDimensionValue($dimension, $r->dim_value ?? ''));
+
+        return $grouped->map(function ($group, $key) {
+            $orderIds = $group->pluck('order_id')->unique();
+            $revenue = (float) $group->unique('order_id')->sum('total');
+            $discountValue = (float) $group->unique('order_id')->sum('discount');
+
+            return (object) [
+                'key' => $key,
+                'redemptions' => $orderIds->count(),
+                'revenue' => $revenue,
+                'discount_value' => $discountValue,
+                'net_revenue' => $revenue - $discountValue,
+            ];
+        })->sortByDesc('revenue')->values();
+    }
+
+    protected function normalizeDimensionValue(string $dimension, ?string $value): string
+    {
+        if ($value === null || $value === '') {
+            return '(geen)';
+        }
+
+        return match ($dimension) {
+            'url' => $this->normalizeUrl($value),
+            'referrer_domain' => $this->extractDomain($value),
+            default => $value,
+        };
+    }
+
+    protected function normalizeUrl(string $url): string
+    {
+        $path = parse_url($url, PHP_URL_PATH);
+        if ($path === null || $path === false || $path === '') {
+            $path = '/';
+        }
+        $supportedLocales = (array) config('app.supported_locales', []);
+        $segments = explode('/', ltrim($path, '/'));
+        if (count($segments) && in_array($segments[0], $supportedLocales, true)) {
+            array_shift($segments);
+        }
+
+        return '/'.implode('/', $segments);
+    }
+
+    protected function extractDomain(string $referrer): string
+    {
+        $host = parse_url($referrer, PHP_URL_HOST);
+
+        return $host ?: '(onbekend)';
     }
 
     private function byVariant(int $popupId, CarbonInterface $from, CarbonInterface $to): array
