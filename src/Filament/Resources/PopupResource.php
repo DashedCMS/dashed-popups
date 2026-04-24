@@ -368,8 +368,6 @@ class PopupResource extends Resource
                 continue;
             }
             $label = $routeModel['name'] ?? $key;
-            $nameField = $routeModel['nameField'] ?? 'name';
-
             $fields[] = Radio::make("target_mode_{$ruleType}_{$key}")
                 ->label(__('Zichtbaar op :model:', ['model' => $label]))
                 ->options([
@@ -386,7 +384,7 @@ class PopupResource extends Resource
                 ->label(__('Selecteer :model:', ['model' => $label]))
                 ->multiple()
                 ->searchable()
-                ->options(fn () => $modelClass::query()->limit(200)->pluck($nameField, 'id')->all())
+                ->options(fn () => $modelClass::query()->limit(200)->pluck('name', 'id')->all())
                 ->visible(fn (Get $get) => $get("target_mode_{$ruleType}_{$key}") === 'selected')
                 ->dehydrated(false)
                 ->columnSpanFull();
