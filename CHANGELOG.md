@@ -2,6 +2,17 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.9.0 - 2026-05-01
+
+### Added
+- Newsletter-koppeling per popup: in een nieuwe sectie "Nieuwsbrief koppeling" op de Popup-edit page kan een repeater met meerdere providers (LaPoste, Ternair, etc.) worden geconfigureerd via `forms()->builder('popupApiClasses')`. Configuratie wordt opgeslagen op `dashed__popups.api_subscriptions` (json).
+- `SyncPopupSubmissionToNewsletterJob` dispatched zodra een eerste e-mail wordt ingevuld op een popup met `api_subscriptions`. Idempotency-guard via nieuwe `dashed__popup_views.newsletter_synced_at`-kolom; als die al gezet is wordt de job no-op.
+- Errors per provider worden gevangen en gelogd; één falende provider blokkeert geen andere providers in dezelfde dispatch.
+- Backfill-actie "Stuur eerder verzamelde emails door" op de Popup edit-page om reeds ingevulde maar nog niet gesyncte e-mailadressen alsnog door te zetten naar de nieuwsbrief-lijsten.
+
+### Fixed
+- Livewire-hydratie crashte met "Cannot assign array to property `$email` of type string" wanneer een client-payload een array op het email-veld stuurde. `$email` is nu untyped zodat `rules()` (via `validate()`) de error netjes opvangt in plaats van te crashen tijdens hydratie.
+
 ## v4.8.2 - 2026-04-24
 
 ### Added

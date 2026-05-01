@@ -184,6 +184,36 @@ class PopupResource extends Resource
                 ->columns(2)
                 ->columnSpanFull(),
 
+            Section::make('Nieuwsbrief koppeling')
+                ->description('Stuur ingevulde e-mailadressen automatisch door naar nieuwsbrief-lijsten.')
+                ->visible(count(forms()->builder('popupApiClasses')) > 0)
+                ->schema(function () {
+                    $apiFields = [];
+                    foreach (forms()->builder('popupApiClasses') as $api) {
+                        foreach ($api['class']::formFields() as $field) {
+                            $apiFields[] = $field
+                                ->visible(fn (Get $get) => $get('class') == $api['class']);
+                        }
+                    }
+
+                    return [
+                        Repeater::make('api_subscriptions')
+                            ->label('Koppelingen')
+                            ->reactive()
+                            ->schema(array_merge([
+                                Select::make('class')
+                                    ->label('Nieuwsbriefdienst')
+                                    ->options(collect(forms()->builder('popupApiClasses'))->pluck('name', 'class')->toArray())
+                                    ->required()
+                                    ->reactive(),
+                            ], $apiFields))
+                            ->addActionLabel('Koppeling toevoegen')
+                            ->columns(['default' => 1, 'lg' => 2])
+                            ->columnSpanFull(),
+                    ];
+                })
+                ->columnSpanFull(),
+
             Section::make('Weergave')
                 ->schema([
                     Radio::make('visibility_mode')

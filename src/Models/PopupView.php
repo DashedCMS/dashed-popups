@@ -18,6 +18,7 @@ class PopupView extends Model
         'last_seen_at' => 'datetime',
         'closed_at' => 'datetime',
         'submitted_at' => 'datetime',
+        'newsletter_synced_at' => 'datetime',
         'discount_code_id' => 'integer',
         'matched_order_id' => 'integer',
         'user_id' => 'integer',

@@ -31,6 +31,7 @@ class Popup extends Model
         'notify_on_conversion' => 'boolean',
         'ai_analysis' => 'array',
         'ai_analyzed_at' => 'datetime',
+        'api_subscriptions' => 'array',
     ];
 
     protected static function booted(): void

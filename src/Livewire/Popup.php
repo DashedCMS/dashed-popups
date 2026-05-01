@@ -9,6 +9,7 @@ use Dashed\DashedEcommerceCore\Jobs\AbandonedCart\ScheduleAbandonedCartEmailsFor
 use Dashed\DashedEcommerceCore\Models\Cart;
 use Dashed\DashedEcommerceCore\Models\DiscountCode;
 use Dashed\DashedPopups\Analytics\DeviceDetector;
+use Dashed\DashedPopups\Jobs\SyncPopupSubmissionToNewsletterJob;
 use Dashed\DashedPopups\Mail\PopupConversionMail;
 use Dashed\DashedPopups\Models\Popup as PopupModel;
 use Dashed\DashedPopups\Models\PopupVariant;
@@ -28,7 +29,7 @@ class Popup extends Component
 
     public string $eventName = 'redirectTo';
 
-    public string $email = '';
+    public $email = '';
 
     public bool $showSuccess = false;
 
@@ -241,6 +242,10 @@ class Popup extends Component
             } catch (\Throwable $e) {
                 report($e);
             }
+        }
+
+        if ($wasFirstSubmit && ! empty($this->popup->api_subscriptions)) {
+            SyncPopupSubmissionToNewsletterJob::dispatch($this->popupView->id);
         }
 
         $this->discountCode = $code->code;
