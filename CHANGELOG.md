@@ -2,6 +2,11 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.9.1 - 2026-05-02
+
+### Added
+- Pest test-suite voor de popup→newsletter sync feature: `tests/Feature/PopupNewsletterSyncTest.php` met 10 tests / 17 asserts. Dekt: dispatch-gate (`$wasFirstSubmit && api_subscriptions`), idempotency-guard (`newsletter_synced_at`), per-provider error-isolatie, en de query achter de backfill-actie. `tests/TestCase.php`, `tests/Pest.php`, `tests/TestServiceProvider.php` en `phpunit.xml.dist` toegevoegd voor Orchestra Testbench setup zonder afhankelijkheid van het volledige `cms()`-runtime.
+
 ## v4.9.0 - 2026-05-01
 
 ### Added
