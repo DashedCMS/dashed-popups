@@ -82,7 +82,7 @@
                         </form>
                     @else
                         <div class="text-center py-6"
-                             x-init="setTimeout(() => { $wire.set('showPopup', false); show = false; }, 8000)">
+                             x-init="setTimeout(() => { $wire.call('clickAway'); show = false; }, 8000)">
                             <h2 class="text-xl font-bold text-gray-900 mb-2">Bedankt!</h2>
                             <p class="text-sm text-gray-600">Je kortingscode:</p>
                             <p class="text-2xl font-mono font-bold text-blue-600 my-2">{{ $discountCode }}</p>

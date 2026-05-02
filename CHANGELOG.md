@@ -2,6 +2,15 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.11.0 - 2026-05-02
+
+### Added
+- `closeAllPopups` browser-event wordt nu gedispatched bij `clickAway()` of `goTo()` als de popup in success-state staat (na ingevulde email + getoonde discount-code). Andere popups op de pagina (bv. cart-popup, added-to-cart popup) kunnen hierop luisteren en zichzelf sluiten zodat het scherm volledig leeg is na het wegklikken van de discount.
+- Nieuwe check in `mount()`: discount-popups slaan zichzelf over als de gebruiker eerder al een korting heeft geclaimd via een willekeurige discount-popup (`PopupView` met `submitted_at` en `discount_code_id` op user_id of email). Voorkomt dat dezelfde gebruiker bij elke nieuwe popup opnieuw zijn email moet invullen.
+
+### Changed
+- Auto-dismiss timer in success-state roept nu `clickAway` aan ipv `$wire.set('showPopup', false)` zodat `closed_at` correct wordt gelogd én het `closeAllPopups`-event ook bij auto-dismiss vuurt.
+
 ## v4.10.0 - 2026-05-02
 
 ### Added

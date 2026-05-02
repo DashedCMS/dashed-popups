@@ -69,6 +69,12 @@ class Popup extends Component
             return;
         }
 
+        // Discount popups: skip wanneer deze gebruiker al een korting heeft geclaimd via een
+        // andere discount-popup. Voorkomt dat ze bij elke nieuwe popup opnieuw moeten invullen.
+        if ($this->popup->isDiscountType() && $this->hasAlreadyClaimedDiscount($user?->id, $identityEmail)) {
+            return;
+        }
+
         // Skip if this user or email has already seen this popup in any prior session.
         if ($this->alreadySeenByIdentity($user?->id, $identityEmail)) {
             return;
@@ -148,6 +154,32 @@ class Popup extends Component
 
         return $this->popup->views()
             ->where('session_id', '!=', session()->getId())
+            ->where(function ($q) use ($userId, $email) {
+                if ($userId) {
+                    $q->orWhere('user_id', $userId);
+                }
+                if ($email) {
+                    $q->orWhere('email', $email);
+                }
+            })
+            ->exists();
+    }
+
+    /**
+     * True wanneer de gebruiker al ergens (welke discount-popup dan ook) een
+     * email heeft ingevuld + een kortingscode heeft ontvangen. Voorkomt dat
+     * dezelfde gebruiker bij elke volgende discount-popup opnieuw zijn email
+     * moet invullen.
+     */
+    protected function hasAlreadyClaimedDiscount(?int $userId, ?string $email): bool
+    {
+        if (! $userId && ! $email) {
+            return false;
+        }
+
+        return PopupView::query()
+            ->whereNotNull('submitted_at')
+            ->whereNotNull('discount_code_id')
             ->where(function ($q) use ($userId, $email) {
                 if ($userId) {
                     $q->orWhere('user_id', $userId);
@@ -272,6 +304,10 @@ class Popup extends Component
         }
         $this->showPopup = false;
         $this->dispatch($this->eventName);
+
+        if ($this->showSuccess) {
+            $this->dispatch('closeAllPopups');
+        }
     }
 
     public function clickAway(): void
@@ -281,6 +317,10 @@ class Popup extends Component
             $this->popupView->save();
         }
         $this->showPopup = false;
+
+        if ($this->showSuccess) {
+            $this->dispatch('closeAllPopups');
+        }
     }
 
     public function render()
