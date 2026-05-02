@@ -16,6 +16,7 @@ use Dashed\DashedPopups\Mail\PopupConversionMail;
 use Dashed\DashedCore\Notifications\AdminNotifier;
 use Dashed\DashedEcommerceCore\Models\DiscountCode;
 use Dashed\DashedPopups\Models\Popup as PopupModel;
+use Dashed\DashedPopups\Jobs\SendPopupFollowUpEmailJob;
 use Dashed\DashedPopups\Jobs\SyncPopupSubmissionToNewsletterJob;
 use Dashed\DashedEcommerceCore\Jobs\AbandonedCart\ScheduleAbandonedCartEmailsForCartJob;
 
@@ -246,6 +247,17 @@ class Popup extends Component
 
         if ($wasFirstSubmit && ! empty($this->popup->api_subscriptions)) {
             SyncPopupSubmissionToNewsletterJob::dispatch($this->popupView->id);
+        }
+
+        if ($wasFirstSubmit && $this->popupView) {
+            $flow = $this->popup->resolveFollowUpFlow();
+            if ($flow && ! $this->popupView->follow_up_started_at) {
+                $this->popupView->update(['follow_up_started_at' => now()]);
+                foreach ($flow->emails()->where('is_active', true)->get() as $followUpEmail) {
+                    SendPopupFollowUpEmailJob::dispatch($this->popupView->id, $followUpEmail->id)
+                        ->delay(now()->addMinutes((int) $followUpEmail->send_after_minutes));
+                }
+            }
         }
 
         $this->discountCode = $code->code;
