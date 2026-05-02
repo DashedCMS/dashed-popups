@@ -3,6 +3,7 @@
 namespace Dashed\DashedPopups;
 
 use Livewire\Livewire;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Dashed\DashedPopups\Livewire\Popup;
 use Spatie\LaravelPackageTools\Package;
@@ -11,7 +12,9 @@ use Dashed\DashedPopups\Policies\PopupPolicy;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Dashed\DashedPopups\Commands\RollupPopupStatsCommand;
 use Dashed\DashedPopups\Filament\Resources\PopupResource;
+use Dashed\DashedPopups\Filament\Resources\PopupFollowUpFlowResource;
 use Dashed\DashedPopups\Filament\Widgets\PopupFunnelWidget;
+use Dashed\DashedPopups\Listeners\CancelPopupFollowUpsOnPaidOrder;
 use Dashed\DashedPopups\Livewire\Admin\PopupAnalyticsPanel;
 use Dashed\DashedPopups\Commands\BackfillPopupOrderMatchesCommand;
 use Dashed\DashedPopups\Filament\Widgets\PopupPerformanceOverview;
@@ -53,6 +56,13 @@ class DashedPopupsServiceProvider extends PackageServiceProvider
         if (class_exists(\Dashed\DashedEcommerceCore\Models\Order::class)) {
             \Dashed\DashedEcommerceCore\Models\Order::observe(
                 \Dashed\DashedPopups\Observers\OrderPopupMatchObserver::class
+            );
+        }
+
+        if (class_exists(\Dashed\DashedEcommerceCore\Events\Orders\OrderMarkedAsPaidEvent::class)) {
+            Event::listen(
+                \Dashed\DashedEcommerceCore\Events\Orders\OrderMarkedAsPaidEvent::class,
+                CancelPopupFollowUpsOnPaidOrder::class,
             );
         }
 
