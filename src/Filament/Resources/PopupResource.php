@@ -214,6 +214,18 @@ class PopupResource extends Resource
                 })
                 ->columnSpanFull(),
 
+            Section::make('Follow-up flow')
+                ->description('Stuur automatisch een reeks follow-up mails naar gebruikers die hun email hebben ingevuld maar (nog) niet hebben besteld. Stopt automatisch zodra een betaalde order met dit emailadres binnenkomt.')
+                ->schema([
+                    Select::make('follow_up_flow_id')
+                        ->label('Flow')
+                        ->options(\Dashed\DashedPopups\Models\PopupFollowUpFlow::query()->orderBy('name')->pluck('name', 'id')->toArray())
+                        ->placeholder('— Standaard flow gebruiken (indien ingesteld) —')
+                        ->helperText('Kies een specifieke flow voor deze popup. Leeg laten = de globaal als standaard gemarkeerde flow wordt gebruikt; is er geen standaard, dan worden er geen follow-ups verstuurd.')
+                        ->columnSpanFull(),
+                ])
+                ->columnSpanFull(),
+
             Section::make('Weergave')
                 ->schema([
                     Radio::make('visibility_mode')
