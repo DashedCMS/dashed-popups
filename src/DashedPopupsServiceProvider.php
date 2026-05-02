@@ -2,19 +2,19 @@
 
 namespace Dashed\DashedPopups;
 
-use Dashed\DashedPopups\Commands\BackfillPopupOrderMatchesCommand;
+use Livewire\Livewire;
+use Illuminate\Support\Facades\Gate;
+use Dashed\DashedPopups\Livewire\Popup;
+use Spatie\LaravelPackageTools\Package;
+use Illuminate\Console\Scheduling\Schedule;
+use Dashed\DashedPopups\Policies\PopupPolicy;
+use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Dashed\DashedPopups\Commands\RollupPopupStatsCommand;
 use Dashed\DashedPopups\Filament\Resources\PopupResource;
 use Dashed\DashedPopups\Filament\Widgets\PopupFunnelWidget;
-use Dashed\DashedPopups\Filament\Widgets\PopupPerformanceOverview;
 use Dashed\DashedPopups\Livewire\Admin\PopupAnalyticsPanel;
-use Dashed\DashedPopups\Livewire\Popup;
-use Dashed\DashedPopups\Policies\PopupPolicy;
-use Illuminate\Console\Scheduling\Schedule;
-use Illuminate\Support\Facades\Gate;
-use Livewire\Livewire;
-use Spatie\LaravelPackageTools\Package;
-use Spatie\LaravelPackageTools\PackageServiceProvider;
+use Dashed\DashedPopups\Commands\BackfillPopupOrderMatchesCommand;
+use Dashed\DashedPopups\Filament\Widgets\PopupPerformanceOverview;
 
 class DashedPopupsServiceProvider extends PackageServiceProvider
 {
@@ -47,7 +47,7 @@ class DashedPopupsServiceProvider extends PackageServiceProvider
         //        });
 
         cms()->builder('plugins', [
-            new DashedPopupsPlugin,
+            new DashedPopupsPlugin(),
         ]);
 
         if (class_exists(\Dashed\DashedEcommerceCore\Models\Order::class)) {
@@ -113,7 +113,7 @@ MARKDOWN,
         $package->name('dashed-popups');
 
         cms()->builder('plugins', [
-            new DashedPopupsPlugin,
+            new DashedPopupsPlugin(),
         ]);
     }
 }

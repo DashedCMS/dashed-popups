@@ -6,7 +6,9 @@ use Dashed\DashedPopups\Services\PopupOrderMatcher;
 
 class OrderPopupMatchObserver
 {
-    public function __construct(protected PopupOrderMatcher $matcher) {}
+    public function __construct(protected PopupOrderMatcher $matcher)
+    {
+    }
 
     public function updated($order): void
     {

@@ -2,11 +2,11 @@
 
 namespace Dashed\DashedPopups\Services;
 
-use Dashed\DashedPopups\Models\Popup;
-use Dashed\DashedPopups\Models\PopupTarget;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use Dashed\DashedPopups\Models\Popup;
+use Illuminate\Database\Eloquent\Model;
+use Dashed\DashedPopups\Models\PopupTarget;
 
 class PopupTargetingService
 {

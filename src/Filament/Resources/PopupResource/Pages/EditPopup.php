@@ -2,18 +2,18 @@
 
 namespace Dashed\DashedPopups\Filament\Resources\PopupResource\Pages;
 
-use Dashed\DashedPopups\Filament\Resources\PopupResource;
-use Dashed\DashedPopups\Filament\Resources\PopupResource\Concerns\SyncsPopupTargets;
-use Dashed\DashedPopups\Filament\Widgets\PopupFunnelWidget;
-use Dashed\DashedPopups\Jobs\SyncPopupSubmissionToNewsletterJob;
-use Dashed\DashedPopups\Models\Popup;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
+use Illuminate\Support\Collection;
+use Illuminate\Contracts\View\View;
+use Dashed\DashedPopups\Models\Popup;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
-use Illuminate\Contracts\View\View;
-use Illuminate\Support\Collection;
 use LaraZeus\SpatieTranslatable\Actions\LocaleSwitcher;
+use Dashed\DashedPopups\Filament\Resources\PopupResource;
+use Dashed\DashedPopups\Filament\Widgets\PopupFunnelWidget;
+use Dashed\DashedPopups\Jobs\SyncPopupSubmissionToNewsletterJob;
+use Dashed\DashedPopups\Filament\Resources\PopupResource\Concerns\SyncsPopupTargets;
 
 class EditPopup extends EditRecord
 {
@@ -96,26 +96,31 @@ class EditPopup extends EditRecord
                     'Er worden %d aanmeldingen doorgezet naar de gekoppelde nieuwsbrief-lijsten. Reeds verzonden aanmeldingen worden overgeslagen.',
                     $this->pendingBackfillCount($record),
                 ))
-                ->action(function ($record) {
-                    $count = 0;
-                    $record->views()
-                        ->whereNotNull('submitted_at')
-                        ->whereNotNull('email')
-                        ->whereNull('newsletter_synced_at')
-                        ->chunkById(50, function ($views) use (&$count) {
-                            foreach ($views as $view) {
-                                SyncPopupSubmissionToNewsletterJob::dispatch($view->id);
-                                $count++;
-                            }
-                        });
-
-                    Notification::make()
-                        ->title("{$count} aanmeldingen worden doorgezet")
-                        ->success()
-                        ->send();
-                }),
+                ->action(fn ($record) => $this->dispatchNewsletterBackfill($record)),
             DeleteAction::make(),
         ];
+    }
+
+    protected function dispatchNewsletterBackfill($record): int
+    {
+        $count = 0;
+        $record->views()
+            ->whereNotNull('submitted_at')
+            ->whereNotNull('email')
+            ->whereNull('newsletter_synced_at')
+            ->chunkById(50, function ($views) use (&$count) {
+                foreach ($views as $view) {
+                    SyncPopupSubmissionToNewsletterJob::dispatch($view->id);
+                    $count++;
+                }
+            });
+
+        Notification::make()
+            ->title("{$count} aanmeldingen worden doorgezet")
+            ->success()
+            ->send();
+
+        return $count;
     }
 
     protected function pendingBackfillCount($record): int

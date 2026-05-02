@@ -2,9 +2,9 @@
 
 namespace Dashed\DashedPopups\Commands;
 
+use Illuminate\Console\Command;
 use Dashed\DashedPopups\Models\PopupView;
 use Dashed\DashedPopups\Services\PopupOrderMatcher;
-use Illuminate\Console\Command;
 
 class BackfillPopupOrderMatchesCommand extends Command
 {

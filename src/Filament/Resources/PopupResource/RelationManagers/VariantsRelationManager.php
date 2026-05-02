@@ -2,19 +2,19 @@
 
 namespace Dashed\DashedPopups\Filament\Resources\PopupResource\RelationManagers;
 
-use Dashed\DashedPopups\Analytics\MetricsResolver;
-use Filament\Actions\BulkActionGroup;
+use Filament\Tables\Table;
+use Filament\Schemas\Schema;
+use Filament\Actions\EditAction;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Forms\Components\TextInput;
+use Filament\Actions\BulkActionGroup;
 use Filament\Forms\Components\Toggle;
-use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Schemas\Schema;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
+use Filament\Forms\Components\TextInput;
+use Dashed\DashedPopups\Analytics\MetricsResolver;
+use Filament\Resources\RelationManagers\RelationManager;
 
 class VariantsRelationManager extends RelationManager
 {

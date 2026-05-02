@@ -2,10 +2,10 @@
 
 namespace Dashed\DashedPopups\Filament\Widgets;
 
-use Dashed\DashedPopups\Analytics\MetricsResolver;
 use Dashed\DashedPopups\Models\Popup;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Dashed\DashedPopups\Analytics\MetricsResolver;
 
 class PopupFunnelWidget extends StatsOverviewWidget
 {

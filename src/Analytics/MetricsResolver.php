@@ -3,15 +3,17 @@
 namespace Dashed\DashedPopups\Analytics;
 
 use Carbon\CarbonInterface;
-use Dashed\DashedEcommerceCore\Models\Cart;
-use Dashed\DashedPopups\Models\PopupVariant;
-use Dashed\DashedPopups\Models\PopupView;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Dashed\DashedPopups\Models\PopupView;
+use Dashed\DashedEcommerceCore\Models\Cart;
+use Dashed\DashedPopups\Models\PopupVariant;
 
 class MetricsResolver
 {
-    public function __construct(private readonly RollupService $rollup) {}
+    public function __construct(private readonly RollupService $rollup)
+    {
+    }
 
     public function forPopup(int $popupId, CarbonInterface $from, CarbonInterface $to): array
     {

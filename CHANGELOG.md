@@ -2,6 +2,14 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.9.2 - 2026-05-02
+
+### Changed
+- `EditPopup::dispatchNewsletterBackfill()` extracted as a protected method zodat de backfill-query, job-dispatch en notification direct in tests aangeroepen kunnen worden via een anonymous EditPopup-subklasse (zonder Filament panel-auth te bootstrappen). De `syncToNewsletter` Filament-action is nu een dunne shim. Methode geeft de dispatch-count terug voor assertability. Geen gedragsverandering in productie.
+
+### Style
+- Pint import-sorting sweep over `PopupResource`, `EditPopup`, `SyncPopupSubmissionToNewsletterJob`, models, migraties, analytics, observers en services. Pure formatting.
+
 ## v4.9.1 - 2026-05-02
 
 ### Added

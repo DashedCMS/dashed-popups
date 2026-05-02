@@ -2,8 +2,8 @@
 
 namespace Dashed\DashedPopups\Filament\Resources\PopupResource\Concerns;
 
-use Dashed\DashedPopups\Models\Popup;
 use Illuminate\Support\Facades\DB;
+use Dashed\DashedPopups\Models\Popup;
 
 trait SyncsPopupTargets
 {

@@ -2,38 +2,38 @@
 
 namespace Dashed\DashedPopups\Filament\Resources;
 
+use UnitEnum;
 use BackedEnum;
-use Dashed\DashedCore\Classes\Actions\ActionGroups\ToolbarActions;
-use Dashed\DashedEcommerceCore\Classes\CurrencyHelper;
-use Dashed\DashedPopups\Analytics\MetricsResolver;
-use Dashed\DashedPopups\Analytics\StatusClassifier;
-use Dashed\DashedPopups\Filament\Blocks\PopupBlockRegistry;
-use Dashed\DashedPopups\Filament\Resources\PopupResource\Pages\CreatePopup;
-use Dashed\DashedPopups\Filament\Resources\PopupResource\Pages\EditPopup;
-use Dashed\DashedPopups\Filament\Resources\PopupResource\Pages\ListPopups;
-use Dashed\DashedPopups\Filament\Resources\PopupResource\RelationManagers\ConversionsRelationManager;
-use Dashed\DashedPopups\Filament\Resources\PopupResource\RelationManagers\VariantsRelationManager;
-use Dashed\DashedPopups\Models\Popup;
-use Dashed\DashedPopups\PopupTemplates\PopupTemplateRegistry;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\EditAction;
-use Filament\Forms\Components\Builder;
-use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\Radio;
-use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
-use Filament\Resources\Resource;
-use Filament\Schemas\Components\Fieldset;
-use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Utilities\Get;
+use Filament\Tables\Table;
 use Filament\Schemas\Schema;
+use Filament\Actions\EditAction;
+use Filament\Resources\Resource;
+use Filament\Actions\DeleteAction;
+use Filament\Forms\Components\Radio;
+use Dashed\DashedPopups\Models\Popup;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Toggle;
+use Illuminate\Support\Facades\Cache;
+use Filament\Forms\Components\Builder;
+use Filament\Forms\Components\Repeater;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
-use Illuminate\Support\Facades\Cache;
-use UnitEnum;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Fieldset;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Schemas\Components\Utilities\Get;
+use Dashed\DashedPopups\Analytics\MetricsResolver;
+use Dashed\DashedPopups\Analytics\StatusClassifier;
+use Dashed\DashedEcommerceCore\Classes\CurrencyHelper;
+use Dashed\DashedPopups\Filament\Blocks\PopupBlockRegistry;
+use Dashed\DashedPopups\PopupTemplates\PopupTemplateRegistry;
+use Dashed\DashedCore\Classes\Actions\ActionGroups\ToolbarActions;
+use Dashed\DashedPopups\Filament\Resources\PopupResource\Pages\EditPopup;
+use Dashed\DashedPopups\Filament\Resources\PopupResource\Pages\ListPopups;
+use Dashed\DashedPopups\Filament\Resources\PopupResource\Pages\CreatePopup;
+use Dashed\DashedPopups\Filament\Resources\PopupResource\RelationManagers\VariantsRelationManager;
+use Dashed\DashedPopups\Filament\Resources\PopupResource\RelationManagers\ConversionsRelationManager;
 
 class PopupResource extends Resource
 {

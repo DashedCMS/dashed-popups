@@ -5,8 +5,8 @@ namespace Dashed\DashedPopups\Filament\Resources\PopupResource\Pages;
 use Filament\Resources\Pages\CreateRecord;
 use LaraZeus\SpatieTranslatable\Actions\LocaleSwitcher;
 use Dashed\DashedPopups\Filament\Resources\PopupResource;
-use Dashed\DashedPopups\Filament\Resources\PopupResource\Concerns\SyncsPopupTargets;
 use LaraZeus\SpatieTranslatable\Resources\Pages\CreateRecord\Concerns\Translatable;
+use Dashed\DashedPopups\Filament\Resources\PopupResource\Concerns\SyncsPopupTargets;
 
 class CreatePopup extends CreateRecord
 {
