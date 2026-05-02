@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Translatable\HasTranslations;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Dashed\DashedPopups\Services\PopupTargetingService;
 
 class Popup extends Model
@@ -32,6 +33,7 @@ class Popup extends Model
         'ai_analysis' => 'array',
         'ai_analyzed_at' => 'datetime',
         'api_subscriptions' => 'array',
+        'follow_up_flow_id' => 'integer',
     ];
 
     protected static function booted(): void
@@ -98,5 +100,24 @@ class Popup extends Model
         $now = now();
 
         return $this->start_date->lte($now) && $this->end_date->gte($now);
+    }
+
+    public function followUpFlow(): BelongsTo
+    {
+        return $this->belongsTo(PopupFollowUpFlow::class, 'follow_up_flow_id');
+    }
+
+    /**
+     * Resolve the follow-up flow that should run when a visitor submits this
+     * popup. Returns the popup's own flow if set, otherwise the default flow,
+     * otherwise null (no flow runs).
+     */
+    public function resolveFollowUpFlow(): ?PopupFollowUpFlow
+    {
+        if ($this->follow_up_flow_id) {
+            return PopupFollowUpFlow::find($this->follow_up_flow_id);
+        }
+
+        return PopupFollowUpFlow::default();
     }
 }
