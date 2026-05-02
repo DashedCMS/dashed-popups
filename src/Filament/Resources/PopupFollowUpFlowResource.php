@@ -11,6 +11,7 @@ use Filament\Actions\EditAction;
 use Filament\Forms\Components\Builder;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
@@ -150,6 +151,29 @@ class PopupFollowUpFlowResource extends Resource
                                         ->label('Scheidingslijn')
                                         ->icon('heroicon-o-minus')
                                         ->schema([]),
+                                    Builder\Block::make('usp')
+                                        ->label('USPs')
+                                        ->icon('heroicon-o-check-badge')
+                                        ->maxItems(1)
+                                        ->schema([
+                                            Textarea::make('items')
+                                                ->label('USPs (één per regel)')
+                                                ->helperText('Voer elke USP op een nieuwe regel in')
+                                                ->rows(4)
+                                                ->default("Gratis verzending\nSnel geleverd\nVeilig betalen"),
+                                        ]),
+                                    Builder\Block::make('discount')
+                                        ->label('Kortingscode')
+                                        ->icon('heroicon-o-tag')
+                                        ->maxItems(1)
+                                        ->schema([
+                                            TextInput::make('label')
+                                                ->label('Tekst boven de code')
+                                                ->default('Gebruik deze code voor extra korting:'),
+                                            TextInput::make('code')
+                                                ->label('Code')
+                                                ->helperText('Laat leeg om de code van de popup-conversie zelf te gebruiken (indien beschikbaar).'),
+                                        ]),
                                 ])
                                 ->columnSpanFull()
                                 ->collapsible()

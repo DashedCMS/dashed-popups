@@ -43,6 +43,33 @@
                                     @endif
                                 @elseif ($type === 'divider')
                                     <hr style="border:none;border-top:1px solid #e5e5e5;margin:16px 0;" />
+                                @elseif ($type === 'usp')
+                                    @php
+                                        $items = collect(explode("\n", (string) ($data['items'] ?? '')))
+                                            ->map(fn ($l) => trim($l))
+                                            ->filter()
+                                            ->values();
+                                    @endphp
+                                    @if ($items->isNotEmpty())
+                                        <ul style="margin:0 0 16px 0;padding:0;list-style:none;font-size:15px;line-height:1.55;color:#222;">
+                                            @foreach ($items as $item)
+                                                <li style="padding:4px 0 4px 22px;background:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23111%22><path d=%22M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z%22/></svg>') no-repeat 0 8px;background-size:14px 14px;">{{ $item }}</li>
+                                            @endforeach
+                                        </ul>
+                                    @endif
+                                @elseif ($type === 'discount')
+                                    @php
+                                        $resolvedCode = $data['code'] ?? '';
+                                        if ($resolvedCode === '' && isset($popupDiscountCode)) {
+                                            $resolvedCode = $popupDiscountCode;
+                                        }
+                                    @endphp
+                                    @if ($resolvedCode !== '')
+                                        <div style="margin:0 0 16px 0;padding:16px;background-color:#f5f5f5;border-radius:6px;text-align:center;">
+                                            <div style="font-size:14px;color:#444;margin-bottom:8px;">{{ $data['label'] ?? 'Gebruik deze code voor extra korting:' }}</div>
+                                            <div style="display:inline-block;padding:8px 14px;background-color:#fff;border:1px dashed #999;border-radius:4px;font-size:18px;letter-spacing:1px;font-weight:bold;color:#111;">{{ $resolvedCode }}</div>
+                                        </div>
+                                    @endif
                                 @endif
                             @endforeach
 

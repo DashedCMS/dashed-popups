@@ -79,6 +79,7 @@ class PopupFollowUpMail extends Mailable
                 'followUpEmail' => $this->followUpEmail,
                 'blocks' => $blocks,
                 'siteName' => $siteName,
+                'popupDiscountCode' => $this->resolvePopupDiscountCode(),
             ]);
 
         $fromEmail = $this->resolveFromEmail();
@@ -101,6 +102,24 @@ class PopupFollowUpMail extends Mailable
         }
 
         return (string) config('app.name', 'Site');
+    }
+
+    protected function resolvePopupDiscountCode(): ?string
+    {
+        $discountCodeId = $this->popupView->discount_code_id ?? null;
+        if (! $discountCodeId) {
+            return null;
+        }
+
+        if (class_exists(\Dashed\DashedEcommerceCore\Models\DiscountCode::class)) {
+            $code = \Dashed\DashedEcommerceCore\Models\DiscountCode::query()
+                ->whereKey($discountCodeId)
+                ->value('code');
+
+            return $code ?: null;
+        }
+
+        return null;
     }
 
     protected function resolveFromEmail(): ?string
