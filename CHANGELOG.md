@@ -2,6 +2,14 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.9.3 - 2026-05-02
+
+### Added
+- `Exceptions\NewsletterRateLimitException` met `retryAfter`-seconds. Provider-classes (Laposta, Ternair, ...) kunnen die gooien wanneer de externe API rate-limit'd; `SyncPopupSubmissionToNewsletterJob` vangt 'm op en doet `release($retryAfter)` zodat de job opnieuw op de queue komt zonder de andere providers in dezelfde view te raken. Vereist `dashed-laposta` v4.0.12+.
+- `SyncPopupSubmissionToNewsletterJob::__construct(int $popupViewId, bool $force = false)`: tweede parameter forceert het opnieuw versturen van een al gesyncte submission (idempotency-guard wordt overgeslagen). Default false zodat bestaande dispatches gedrag-identiek blijven.
+- Backfill-actie op `EditPopup` heeft nu een `Toggle` "Alles opnieuw versturen". Aan = stuur ook reeds verzonden inzendingen opnieuw door (forceert via de `$force`-flag op de job). Uit = alleen nog niet verzonden. De actie is nu zichtbaar zolang er überhaupt submissions zijn (niet meer disabled bij 0 pending).
+- `EditPopup::totalSubmissionsCount()` als helper voor de visibility/disabled-logica.
+
 ## v4.9.2 - 2026-05-02
 
 ### Changed

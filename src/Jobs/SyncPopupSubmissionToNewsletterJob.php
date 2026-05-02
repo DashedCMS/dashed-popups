@@ -9,6 +9,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Dashed\DashedPopups\Models\PopupView;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Dashed\DashedPopups\Exceptions\NewsletterRateLimitException;
 
 class SyncPopupSubmissionToNewsletterJob implements ShouldQueue
 {
@@ -21,8 +22,10 @@ class SyncPopupSubmissionToNewsletterJob implements ShouldQueue
 
     public array $backoff = [60, 300, 900];
 
-    public function __construct(public int $popupViewId)
-    {
+    public function __construct(
+        public int $popupViewId,
+        public bool $force = false,
+    ) {
     }
 
     public function handle(): void
@@ -33,7 +36,7 @@ class SyncPopupSubmissionToNewsletterJob implements ShouldQueue
             return;
         }
 
-        if ($view->newsletter_synced_at) {
+        if (! $this->force && $view->newsletter_synced_at) {
             return;
         }
 
@@ -45,6 +48,8 @@ class SyncPopupSubmissionToNewsletterJob implements ShouldQueue
             return;
         }
 
+        $rateLimitDelay = 0;
+
         foreach ($apis as $api) {
             $class = $api['class'] ?? null;
             if (! $class || ! class_exists($class)) {
@@ -53,6 +58,15 @@ class SyncPopupSubmissionToNewsletterJob implements ShouldQueue
 
             try {
                 $class::dispatch($view, $api);
+            } catch (NewsletterRateLimitException $e) {
+                $rateLimitDelay = max($rateLimitDelay, $e->retryAfter);
+                Log::info('Popup newsletter rate limited; will retry job', [
+                    'popup_id' => $view->popup_id,
+                    'view_id' => $view->id,
+                    'api_class' => $class,
+                    'list_id' => $api['list_id'] ?? null,
+                    'retry_after' => $e->retryAfter,
+                ]);
             } catch (\Throwable $e) {
                 report($e);
                 Log::warning('Popup newsletter dispatch failed', [
@@ -63,6 +77,12 @@ class SyncPopupSubmissionToNewsletterJob implements ShouldQueue
                     'error' => $e->getMessage(),
                 ]);
             }
+        }
+
+        if ($rateLimitDelay > 0) {
+            $this->release($rateLimitDelay);
+
+            return;
         }
 
         $view->update(['newsletter_synced_at' => now()]);
