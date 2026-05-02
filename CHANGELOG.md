@@ -2,6 +2,26 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.10.0 - 2026-05-02
+
+### Added
+- **Popup follow-up email flow.** Popup-gebruikers die hun email achterlaten maar (nog) niet bestellen krijgen automatisch een reeks follow-up mails. Werkt onafhankelijk van de cart (ook bij lege winkelwagen).
+  - Nieuwe tabellen `dashed__popup_follow_up_flows` (naam, `is_default`) en `dashed__popup_follow_up_emails` (per stap: `send_after_minutes`, `is_active`, translatable `subject` + `blocks`).
+  - Nieuwe kolommen op `dashed__popups`: `follow_up_flow_id` (FK, nullable). Resolution: eigen flow ➝ globale default ➝ geen flow.
+  - Nieuwe kolommen op `dashed__popup_views`: `follow_up_started_at` (idempotency-guard) en `follow_up_cancelled_at`.
+  - `PopupFollowUpFlow::default()` + uniqueness-guard zodat maar één flow tegelijk default is.
+  - `Popup::resolveFollowUpFlow()` regelt de fallback-keten.
+  - `SendPopupFollowUpEmailJob` per stap dispatched met `delay()`. Job checkt `follow_up_cancelled_at` op runtime; cancel komt automatisch door wanneer een betaalde order met dit emailadres binnenkomt.
+  - `CancelPopupFollowUpsOnPaidOrder` listener gekoppeld aan `Dashed\DashedEcommerceCore\Events\Orders\OrderMarkedAsPaidEvent`. Cancel-scope: alleen op email-match (niet op user_id).
+  - Trigger zit in `Popup::submitEmail()` na de newsletter-sync; alleen op eerste submit (`$wasFirstSubmit && follow_up_started_at IS NULL`).
+- **Filament admin UI** in dezelfde stijl als de abandoned-cart flow:
+  - `PopupFollowUpFlowResource` met list/edit, repeater van emails per flow.
+  - Per email: Builder-component met blocks `heading`, `paragraph` (RichEditor), `button`, `image`, `divider`, `usp` (textarea, één per regel) en `discount` (handmatige code óf fallback naar `popup_view.discount_code_id`).
+  - Translatable `subject` + `blocks` via spatie/laravel-translatable.
+  - Variabele substitutie `:siteName:` en `:email:` in subject + tekst-blocks.
+  - Theme-override fallback: `<theme>.emails.popup-follow-up` ➝ `dashed-popups::emails.follow-up`.
+  - Sectie "Follow-up flow" op `PopupResource` met Select voor `follow_up_flow_id` en helper-text over de fallback.
+
 ## v4.9.3 - 2026-05-02
 
 ### Added
