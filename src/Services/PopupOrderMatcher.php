@@ -15,7 +15,7 @@ class PopupOrderMatcher
 
     /**
      * Try to find a matching paid order for this PopupView. Only writes
-     * matched_order_id when it is currently null — matches are one-shot.
+     * matched_order_id when it is currently null - matches are one-shot.
      *
      * @return int|null the order id that was matched, or null if no match
      */

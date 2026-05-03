@@ -15,7 +15,7 @@ class PopupVariant extends Model
     protected $casts = [
         'enabled' => 'boolean',
         'split_weight' => 'integer',
-        'discount_percentage_override' => 'integer',
+        'discount_percentage_override' => 'decimal:2',
         'discount_valid_days_override' => 'integer',
         'sort_order' => 'integer',
     ];
@@ -62,9 +62,9 @@ class PopupVariant extends Model
         return $variants->last();
     }
 
-    public function resolvedDiscountPercentage(): int
+    public function resolvedDiscountPercentage(): float
     {
-        return (int) ($this->discount_percentage_override ?? $this->popup->discount_percentage ?? 0);
+        return (float) ($this->discount_percentage_override ?? $this->popup->discount_percentage ?? 0);
     }
 
     public function resolvedValidDays(): int

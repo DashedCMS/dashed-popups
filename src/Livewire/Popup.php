@@ -214,7 +214,7 @@ class Popup extends Component
         $codePrefix = $variant?->code_prefix
             ? 'WELKOM-'.strtoupper($variant->code_prefix).'-'
             : 'WELKOM-';
-        $discountPercentage = $variant?->resolvedDiscountPercentage() ?? (int) $this->popup->discount_percentage;
+        $discountPercentage = $variant?->resolvedDiscountPercentage() ?? (float) $this->popup->discount_percentage;
         $validDays = $variant?->resolvedValidDays() ?? (int) $this->popup->discount_valid_days;
 
         $existingCartWithCode = Cart::where('abandoned_email', $email)

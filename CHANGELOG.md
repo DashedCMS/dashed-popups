@@ -2,10 +2,28 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.13.5 - 2026-05-03
+
+### Added
+- **Test-mail knop per follow-up email** in de Repeater op de PopupFollowUpFlow edit-pagina. Naast de drag-handle, collapse-toggle en delete-button staat nu een "papieren-vliegtuig"-icon dat een modal opent met een ontvanger-veld (default = ingelogde admin). Bouwt een transient `PopupFollowUpEmail` + `PopupView` op uit de huidige form-state (werkt dus ook voor nog niet opgeslagen wijzigingen) en stuurt synchroon via `Mail::to()->sendNow(new PopupFollowUpMail(...))`. Errors gaan via `report()` naar de error-log + danger-notification.
+
+### Changed
+- **PopupFollowUpMail rendert nu via de gedeelde `dashed-core::emails.layout`** - dezelfde wrapper (header met logo of site-naam tegen primaryColor band, content-card met afgeronde hoeken, footer-tekst met © + jaar) die de andere systeem-mails (admin order confirmation, payment-link, password reset, etc.) gebruiken. Voorheen rendered popup-followups via een eigen `dashed-popups::emails.follow-up` view zonder logo/footer. Block-types (`heading`, `paragraph`/`text`, `button`, `image`, `divider`, `usp`, `discount`) worden nu per stuk omgezet naar `<tr><td>` rijen die in de layout-table passen; popup-specifieke types (`paragraph`/`usp`/`discount`) krijgen aliassen of inline rendering die qua styling matcht. Customsetting-driven kleuren (`mail_primary_color`, `mail_text_color`, `mail_background_color`) en `mail_show_logo` / `mail_show_site_name` / `mail_logo` worden gerespecteerd.
+- **Volledig variabelen-systeem in alle blokken**: 5 variabelen (`:siteName:`, `:email:`, `:discountCode:`, `:discountValue:`, `:siteUrl:`) zijn beschikbaar in subject + élk tekst-, link-, label- en code-veld van elk block-type (heading, paragraph, button label/url, image url/alt, usp items, discount label/code). Helper-text staat op elk individueel veld én op de Builder zelf. Substitutie via `strtr()` op alle data-fields in `renderBlock()`.
+- `PopupFollowUpFlow::createDefault()` gebruikt nu alle variabelen in zowel onderwerp als blocks van de 3 standaard-stappen: paragraph-teksten tonen `:discountValue:` + `:discountCode:`, en elke stap krijgt een button-block ("Bekijk onze producten" / "Shoppen bij :siteName:" / "Naar de website") met `:siteUrl:` als URL.
+- **Discount-block toont nu het kortingsbedrag** ("Bespaar **12,5%** op je bestelling" of "Bespaar **€ 5,00** op je bestelling"). Wordt afgeleid uit `DiscountCode::type` + `discount_percentage` of `discount_amount` via nieuwe `PopupFollowUpMail::resolvePopupDiscountInfo()` die zowel code als geformatteerde value teruggeeft. Bedrag-formatting via `CurrencyHelper::formatPrice()` (zelfde format als de rest van het systeem) met fallback voor environments zonder dashed-ecommerce-core. Percentage-formatting trimt trailing nullen ("10%" / "12,5%" / "7,75%").
+- **Decimale kortingspercentages**: `dashed__popups.discount_percentage` en `dashed__popup_variants.discount_percentage_override` zijn omgezet van `integer` naar `decimal(5,2)`. Filament-velden hebben `->step(0.01)` zodat de admin "12.5" of "7.25" kan invullen. Model-casts bijgewerkt naar `decimal:2`. `PopupVariant::resolvedDiscountPercentage()` returnt nu `float` ipv `int`. Vereist `dashed-ecommerce-core` v4.8.2+ (waar `dashed__discount_codes.discount_percentage` ook naar decimal is gemigreerd).
+- Nieuwe public property `PopupFollowUpMail::$previewDiscountValue` (naast `$previewDiscountCode`) als override voor preview-context. De test-mail-actie zet deze op `10%` zodat de admin het volledige discount-block in de testmail correct ziet renderen zonder echte popup-conversie aan de mail te koppelen.
+- **Website-link** wordt nu meegegeven aan de unified `dashed-core::emails.layout` (vereist `dashed-core` v4.3.3+): popup follow-up emails krijgen daardoor automatisch dezelfde clickable header-logo, "Bezoek site" CTA-button boven de footer en domein-link in de footer als alle andere systeem-mails. URL komt uit `Customsetting::get('site_url')` met fallback naar `config('app.url')`.
+- Em-dashes (U+2014) verwijderd uit alle source-bestanden, blade-templates en CHANGELOG-entries van deze package; vervangen door gewone hyphen-minus per project-conventie.
+
+### Fixed
+- `PopupFollowUpMail` constructor gebruikte property-promotion `public readonly ?string $locale` die botste met `Illuminate\Mail\Mailable::$locale` (untyped public). Render of send via deze mailable crashte met `Unknown Property: Did you mean Illuminate\Mail\Mailable::$locale?`. Het locale-argument is nu een gewone parameter die in de constructor-body via `$this->locale = $locale` op de parent-property wordt gezet - read-paden in `build()` blijven werken via de bestaande `$this->locale` referentie.
+
 ## v4.13.4 - 2026-05-03
 
 ### Fixed
-- `PopupFollowUpFlowResource` Repeater (`emails`) heeft nu een `mutateRelationshipDataBeforeFillUsing` callback die `subject` en `blocks` per locale uitpakt voordat het Filament-form gevuld wordt. Spatie's `attributesToArray()` retourneert translatable JSON-kolommen als `{nl: ..., en: ...}` arrays — Filament's Builder kreeg dus de hele locale-wrapped structuur als state, wikkelde die in een nieuwe UUID, en `getBlockPickerBlocks()` crashte op `Undefined array key "type"` omdat de top-level state geen block-items maar locale-keys bevatte. Nu wordt `data['blocks']` voor het invullen omgezet naar een platte list (`array_values($value[$locale] ?? [])`) en `data['subject']` naar de string voor de huidige locale. Dehydration blijft via `array_is_list` → `setTranslation` (huidige locale) op model-niveau, dus saven werkt onveranderd. **Workflow-blocker** opgelost: alle popup-follow-up-flows kunnen nu zonder crash bewerkt worden, ongeacht via `createDefault()` of via de UI aangemaakt.
+- `PopupFollowUpFlowResource` Repeater (`emails`) heeft nu een `mutateRelationshipDataBeforeFillUsing` callback die `subject` en `blocks` per locale uitpakt voordat het Filament-form gevuld wordt. Spatie's `attributesToArray()` retourneert translatable JSON-kolommen als `{nl: ..., en: ...}` arrays - Filament's Builder kreeg dus de hele locale-wrapped structuur als state, wikkelde die in een nieuwe UUID, en `getBlockPickerBlocks()` crashte op `Undefined array key "type"` omdat de top-level state geen block-items maar locale-keys bevatte. Nu wordt `data['blocks']` voor het invullen omgezet naar een platte list (`array_values($value[$locale] ?? [])`) en `data['subject']` naar de string voor de huidige locale. Dehydration blijft via `array_is_list` → `setTranslation` (huidige locale) op model-niveau, dus saven werkt onveranderd. **Workflow-blocker** opgelost: alle popup-follow-up-flows kunnen nu zonder crash bewerkt worden, ongeacht via `createDefault()` of via de UI aangemaakt.
 
 ## v4.13.3 - 2026-05-03
 
@@ -20,25 +38,25 @@ All notable changes to `dashed-popups` will be documented in this file.
 ## v4.13.1 - 2026-05-03
 
 ### Added
-- **Knop "Maak standaard flow aan"** op `/admin/popup-follow-up-flows` — mirror van het abandoned-cart-flow patroon. Maakt een complete `PopupFollowUpFlow` aan met 3 zinnige opvolg-stappen (1 uur, 24 uur, 72 uur na conversie), elk met een paragraph-block + discount-highlight-block, en zet de flow direct op `is_active` + `is_default`.
+- **Knop "Maak standaard flow aan"** op `/admin/popup-follow-up-flows` - mirror van het abandoned-cart-flow patroon. Maakt een complete `PopupFollowUpFlow` aan met 3 zinnige opvolg-stappen (1 uur, 24 uur, 72 uur na conversie), elk met een paragraph-block + discount-highlight-block, en zet de flow direct op `is_active` + `is_default`.
 - Nieuwe statische `PopupFollowUpFlow::createDefault()` method die de seed uitvoert.
 
 ## v4.13.0 - 2026-05-03
 
 ### Added
-- **`is_active` toggle op PopupFollowUpFlow** — mirror van het abandoned-cart-flow patroon. Slechts één flow tegelijk kan actief zijn (model-`saved`-hook zet anderen automatisch op inactive bij save). Filament-form heeft een Toggle, list-table heeft een IconColumn.
+- **`is_active` toggle op PopupFollowUpFlow** - mirror van het abandoned-cart-flow patroon. Slechts één flow tegelijk kan actief zijn (model-`saved`-hook zet anderen automatisch op inactive bij save). Filament-form heeft een Toggle, list-table heeft een IconColumn.
 - Migration `add_is_active_to_popup_follow_up_flows` voegt de boolean kolom toe (default `true`) en zet bestaande rijen op `is_active=true` zodat upgrade niets breekt.
 - `Popup::resolveFollowUpFlow()` retourneert alleen flows met `is_active=true` (zowel voor expliciete `follow_up_flow_id` op de popup als de globale `default()`).
 - Popup-form select toont alleen actieve flows als keuze; placeholder is bijgewerkt naar "actieve standaard".
 - `BackfillPopupFollowUpFlowService::run()` schiet niets in als de flow `is_active=false`.
 
 ### Changed
-- `PopupFollowUpFlow::default()` filtert nu ook op `is_active=true` — een inactieve flow kan nooit als default fungeren, ook niet als `is_default=true`.
+- `PopupFollowUpFlow::default()` filtert nu ook op `is_active=true` - een inactieve flow kan nooit als default fungeren, ook niet als `is_default=true`.
 
 ## v4.12.2 - 2026-05-03
 
 ### Fixed
-- `PopupFollowUpFlowResource` was niet geregistreerd in `DashedPopupsPlugin::register()`. Daardoor was de admin-route `/admin/popup-follow-up-flows` niet bereikbaar en konden gebruikers helemaal geen follow-up flow aanmaken — wat ervoor zorgde dat de Popup-form de "Standaard flow gebruiken (indien ingesteld)" placeholder toonde maar er nooit een default flow bestond. Resource nu in de plugin toegevoegd.
+- `PopupFollowUpFlowResource` was niet geregistreerd in `DashedPopupsPlugin::register()`. Daardoor was de admin-route `/admin/popup-follow-up-flows` niet bereikbaar en konden gebruikers helemaal geen follow-up flow aanmaken - wat ervoor zorgde dat de Popup-form de "Standaard flow gebruiken (indien ingesteld)" placeholder toonde maar er nooit een default flow bestond. Resource nu in de plugin toegevoegd.
 
 ## v4.12.1 - 2026-05-03
 
@@ -52,7 +70,7 @@ All notable changes to `dashed-popups` will be documented in this file.
 - **Backfill-knop op PopupFollowUpFlow.** Op de bewerk-pagina van een follow-up flow staat nu de actie "Toepassen op bestaande" die de emails van de flow alsnog plant voor `PopupView`-records waar de bezoeker al een email heeft ingevuld (`submitted_at` gevuld) maar nog niet in een follow-up flow zit. Configureerbaar venster (1–365 dagen, default 30). Skipt views die al gestart, geannuleerd of zonder email zijn, en views waarvan de popup een ander resolveFollowUpFlow() teruggeeft.
 - Nieuwe service `Services\BackfillPopupFollowUpFlowService` met statistics-array (`views_started`, `views_skipped_*`, `emails_dispatched`).
 - `PopupView::followUpStatus()` retourneert: `not_in_flow`, `cancelled`, `finished` of `step_X_of_Y` op basis van `follow_up_started_at`, `follow_up_cancelled_at` en de `send_after_minutes` van de actieve emails. Geeft inzicht waar elke bezoeker zit in de flow zonder extra log-tabel.
-- Nieuwe kolom in de Conversions-tabel (op de Popup edit-pagina): "Follow-up flow" badge met de huidige status — geannuleerd, niet in flow, afgerond, of "Stap X van Y".
+- Nieuwe kolom in de Conversions-tabel (op de Popup edit-pagina): "Follow-up flow" badge met de huidige status - geannuleerd, niet in flow, afgerond, of "Stap X van Y".
 
 ## v4.11.0 - 2026-05-02
 

@@ -24,7 +24,7 @@ class PopupAnalyticsPanel extends Component
 
     public function updatedPeriod(): void
     {
-        // Touching state is enough — computed props recompute automatically on re-render.
+        // Touching state is enough - computed props recompute automatically on re-render.
     }
 
     #[Computed]

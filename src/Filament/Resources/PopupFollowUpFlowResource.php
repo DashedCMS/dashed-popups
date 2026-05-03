@@ -4,6 +4,7 @@ namespace Dashed\DashedPopups\Filament\Resources;
 
 use UnitEnum;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Tables\Table;
 use Filament\Schemas\Schema;
 use Filament\Actions\EditAction;
@@ -15,18 +16,25 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Forms\Components\Builder;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Textarea;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Illuminate\Support\Facades\Mail;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\RichEditor;
+use Dashed\DashedPopups\Mail\PopupFollowUpMail;
+use Dashed\DashedPopups\Models\PopupFollowUpEmail;
 use Dashed\DashedPopups\Models\PopupFollowUpFlow;
+use Dashed\DashedPopups\Models\PopupView;
 use Dashed\DashedPopups\Filament\Resources\PopupFollowUpFlowResource\Pages\EditPopupFollowUpFlow;
 use Dashed\DashedPopups\Filament\Resources\PopupFollowUpFlowResource\Pages\ListPopupFollowUpFlows;
 use Dashed\DashedPopups\Filament\Resources\PopupFollowUpFlowResource\Pages\CreatePopupFollowUpFlow;
 
 class PopupFollowUpFlowResource extends Resource
 {
+    public const VARIABLES_HELP = 'Variabelen: :siteName: :email: :discountCode: :discountValue: :siteUrl:';
+
     protected static ?string $model = PopupFollowUpFlow::class;
 
     protected static ?string $recordTitleAttribute = 'name';
@@ -96,6 +104,63 @@ class PopupFollowUpFlowResource extends Resource
                         ->addActionLabel('Email toevoegen')
                         ->reorderableWithButtons()
                         ->collapsible()
+                        ->extraItemActions([
+                            Action::make('sendTestMail')
+                                ->label('Test mail naar mij sturen')
+                                ->icon('heroicon-o-paper-airplane')
+                                ->color('info')
+                                ->modalHeading('Test mail versturen')
+                                ->modalDescription('Verstuurt een synchrone test-render van deze mail naar het opgegeven adres. Werkt ook voor nog niet opgeslagen wijzigingen.')
+                                ->modalSubmitActionLabel('Versturen')
+                                ->form([
+                                    TextInput::make('recipient')
+                                        ->label('Ontvanger')
+                                        ->email()
+                                        ->required()
+                                        ->default(fn () => auth()->user()?->email),
+                                ])
+                                ->action(function (array $arguments, array $data, Repeater $component): void {
+                                    $itemState = $component->getRawItemState($arguments['item']);
+                                    $locale = app()->getLocale();
+                                    $recipient = (string) ($data['recipient'] ?? '');
+
+                                    $blocks = $itemState['blocks'] ?? [];
+                                    if (! is_array($blocks)) {
+                                        $blocks = [];
+                                    }
+                                    $blocks = array_values($blocks);
+
+                                    $email = new PopupFollowUpEmail();
+                                    $email->send_after_minutes = (int) ($itemState['send_after_minutes'] ?? 60);
+                                    $email->is_active = (bool) ($itemState['is_active'] ?? true);
+                                    $email->setTranslation('subject', $locale, (string) ($itemState['subject'] ?? 'Test mail'));
+                                    $email->setTranslation('blocks', $locale, $blocks);
+
+                                    $popupView = new PopupView();
+                                    $popupView->email = $recipient;
+                                    $popupView->locale = $locale;
+
+                                    $mailable = new PopupFollowUpMail($popupView, $email, $locale);
+                                    $mailable->previewDiscountCode = 'PREVIEW-'.strtoupper(substr(bin2hex(random_bytes(3)), 0, 6));
+                                    $mailable->previewDiscountValue = '10%';
+
+                                    try {
+                                        Mail::to($recipient)->sendNow($mailable);
+
+                                        Notification::make()
+                                            ->title('Test mail verstuurd naar '.$recipient)
+                                            ->success()
+                                            ->send();
+                                    } catch (\Throwable $e) {
+                                        report($e);
+                                        Notification::make()
+                                            ->title('Test mail mislukt')
+                                            ->body($e->getMessage())
+                                            ->danger()
+                                            ->send();
+                                    }
+                                }),
+                        ])
                         ->itemLabel(function (array $state): ?string {
                             $minutes = (int) ($state['send_after_minutes'] ?? 0);
                             $label = static::formatDelayLabel($minutes);
@@ -105,7 +170,7 @@ class PopupFollowUpFlowResource extends Resource
                             }
                             $subject = is_string($subject) ? trim($subject) : '';
 
-                            return trim($label.($subject !== '' ? ' — '.$subject : ''));
+                            return trim($label.($subject !== '' ? ' - '.$subject : ''));
                         })
                         ->schema([
                             TextInput::make('send_after_minutes')
@@ -120,12 +185,13 @@ class PopupFollowUpFlowResource extends Resource
                                 ->default(true),
                             TextInput::make('subject')
                                 ->label('Onderwerp')
-                                ->helperText('Beschikbare variabelen: :siteName: :email:')
+                                ->helperText('Beschikbare '.self::VARIABLES_HELP)
                                 ->required()
                                 ->maxLength(255)
                                 ->columnSpanFull(),
                             Builder::make('blocks')
                                 ->label('Inhoud blokken')
+                                ->helperText(self::VARIABLES_HELP.' - werken in elk tekst-, link- en code-veld hieronder.')
                                 ->blocks([
                                     Builder\Block::make('heading')
                                         ->label('Kop')
@@ -133,6 +199,7 @@ class PopupFollowUpFlowResource extends Resource
                                         ->schema([
                                             TextInput::make('content')
                                                 ->label('Tekst')
+                                                ->helperText(self::VARIABLES_HELP)
                                                 ->required(),
                                         ]),
                                     Builder\Block::make('paragraph')
@@ -141,7 +208,7 @@ class PopupFollowUpFlowResource extends Resource
                                         ->schema([
                                             RichEditor::make('content')
                                                 ->label('Tekst')
-                                                ->helperText('Variabelen: :siteName: :email:')
+                                                ->helperText(self::VARIABLES_HELP)
                                                 ->toolbarButtons([
                                                     'bold', 'italic', 'underline', 'strike',
                                                     'link', 'bulletList', 'orderedList', 'h2', 'h3',
@@ -153,12 +220,14 @@ class PopupFollowUpFlowResource extends Resource
                                         ->schema([
                                             TextInput::make('label')
                                                 ->label('Knoptekst')
+                                                ->helperText(self::VARIABLES_HELP)
                                                 ->default('Bekijk')
                                                 ->required(),
                                             TextInput::make('url')
                                                 ->label('URL')
-                                                ->required()
-                                                ->url(),
+                                                ->helperText(self::VARIABLES_HELP.' - laat `:siteUrl:` staan voor de homepage.')
+                                                ->default(':siteUrl:')
+                                                ->required(),
                                         ]),
                                     Builder\Block::make('image')
                                         ->label('Afbeelding')
@@ -166,9 +235,11 @@ class PopupFollowUpFlowResource extends Resource
                                         ->schema([
                                             TextInput::make('url')
                                                 ->label('URL')
+                                                ->helperText(self::VARIABLES_HELP)
                                                 ->required(),
                                             TextInput::make('alt')
-                                                ->label('Alt-tekst'),
+                                                ->label('Alt-tekst')
+                                                ->helperText(self::VARIABLES_HELP),
                                         ]),
                                     Builder\Block::make('divider')
                                         ->label('Scheidingslijn')
@@ -181,7 +252,7 @@ class PopupFollowUpFlowResource extends Resource
                                         ->schema([
                                             Textarea::make('items')
                                                 ->label('USPs (één per regel)')
-                                                ->helperText('Voer elke USP op een nieuwe regel in')
+                                                ->helperText('Voer elke USP op een nieuwe regel in. '.self::VARIABLES_HELP)
                                                 ->rows(4)
                                                 ->default("Gratis verzending\nSnel geleverd\nVeilig betalen"),
                                         ]),
@@ -192,10 +263,11 @@ class PopupFollowUpFlowResource extends Resource
                                         ->schema([
                                             TextInput::make('label')
                                                 ->label('Tekst boven de code')
+                                                ->helperText(self::VARIABLES_HELP)
                                                 ->default('Gebruik deze code voor extra korting:'),
                                             TextInput::make('code')
                                                 ->label('Code')
-                                                ->helperText('Laat leeg om de code van de popup-conversie zelf te gebruiken (indien beschikbaar).'),
+                                                ->helperText('Laat leeg om de code van de popup-conversie zelf te gebruiken. Optionele '.self::VARIABLES_HELP),
                                         ]),
                                 ])
                                 ->columnSpanFull()

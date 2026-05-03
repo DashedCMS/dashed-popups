@@ -40,9 +40,10 @@ class VariantsRelationManager extends RelationManager
             TextInput::make('discount_percentage_override')
                 ->label('Kortingspercentage override')
                 ->numeric()
-                ->minValue(1)
-                ->maxValue(100)
-                ->helperText('Leeg laten om het default popup-percentage te gebruiken.'),
+                ->step(0.01)
+                ->minValue(0.01)
+                ->maxValue(99.99)
+                ->helperText('Decimalen toegestaan (bijv. 12.5). Leeg laten om het default popup-percentage te gebruiken.'),
             TextInput::make('discount_valid_days_override')
                 ->label('Geldigheid (dagen) override')
                 ->numeric()

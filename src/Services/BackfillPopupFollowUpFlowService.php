@@ -83,7 +83,7 @@ class BackfillPopupFollowUpFlowService
             }
 
             // Re-resolve flow per view (popup may have its own follow_up_flow_id);
-            // skip when the resolved flow isn't this one — we don't want to
+            // skip when the resolved flow isn't this one - we don't want to
             // hijack views that belong to a different flow.
             $popup = $view->popup;
             $resolved = $popup?->resolveFollowUpFlow();

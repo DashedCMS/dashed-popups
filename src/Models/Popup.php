@@ -25,7 +25,7 @@ class Popup extends Model
         'active' => 'boolean',
         'auto_apply_discount' => 'boolean',
         'blocks' => 'array',
-        'discount_percentage' => 'integer',
+        'discount_percentage' => 'decimal:2',
         'discount_valid_days' => 'integer',
         'trigger_value' => 'integer',
         'show_again_after' => 'integer',

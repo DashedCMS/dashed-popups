@@ -116,9 +116,11 @@ class PopupResource extends Resource
                 ->schema([
                     TextInput::make('discount_percentage')
                         ->label('Kortingspercentage')
+                        ->helperText('Decimalen toegestaan (bijv. 12.5)')
                         ->numeric()
-                        ->minValue(1)
-                        ->maxValue(99)
+                        ->step(0.01)
+                        ->minValue(0.01)
+                        ->maxValue(99.99)
                         ->default(10)
                         ->required(),
                     TextInput::make('discount_valid_days')
@@ -220,7 +222,7 @@ class PopupResource extends Resource
                     Select::make('follow_up_flow_id')
                         ->label('Flow')
                         ->options(\Dashed\DashedPopups\Models\PopupFollowUpFlow::query()->where('is_active', true)->orderBy('name')->pluck('name', 'id')->toArray())
-                        ->placeholder('— Standaard flow gebruiken (indien ingesteld) —')
+                        ->placeholder('- Standaard flow gebruiken (indien ingesteld) -')
                         ->helperText('Kies een specifieke flow voor deze popup. Leeg laten = de globaal als standaard gemarkeerde actieve flow wordt gebruikt; is er geen actieve standaard, dan worden er geen follow-ups verstuurd.')
                         ->columnSpanFull(),
                 ])

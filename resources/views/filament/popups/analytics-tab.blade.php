@@ -144,7 +144,7 @@
                     @forelse ($rows as $r)
                         <li class="flex items-center justify-between gap-4 py-2 text-sm" title="{{ $r['value'] }}">
                             <span class="truncate text-gray-950 dark:text-white">
-                                {{ \Illuminate\Support\Str::limit($r['value'], 40) ?: '—' }}
+                                {{ \Illuminate\Support\Str::limit($r['value'], 40) ?: '-' }}
                             </span>
                             <span class="shrink-0 tabular-nums text-gray-500 dark:text-gray-400">
                                 {{ $num($r['views']) }} · {{ $pct($r['conversion_rate']) }}
