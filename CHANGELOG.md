@@ -2,6 +2,11 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.13.4 - 2026-05-03
+
+### Fixed
+- `PopupFollowUpFlowResource` Repeater (`emails`) heeft nu een `mutateRelationshipDataBeforeFillUsing` callback die `subject` en `blocks` per locale uitpakt voordat het Filament-form gevuld wordt. Spatie's `attributesToArray()` retourneert translatable JSON-kolommen als `{nl: ..., en: ...}` arrays — Filament's Builder kreeg dus de hele locale-wrapped structuur als state, wikkelde die in een nieuwe UUID, en `getBlockPickerBlocks()` crashte op `Undefined array key "type"` omdat de top-level state geen block-items maar locale-keys bevatte. Nu wordt `data['blocks']` voor het invullen omgezet naar een platte list (`array_values($value[$locale] ?? [])`) en `data['subject']` naar de string voor de huidige locale. Dehydration blijft via `array_is_list` → `setTranslation` (huidige locale) op model-niveau, dus saven werkt onveranderd. **Workflow-blocker** opgelost: alle popup-follow-up-flows kunnen nu zonder crash bewerkt worden, ongeacht via `createDefault()` of via de UI aangemaakt.
+
 ## v4.13.3 - 2026-05-03
 
 ### Fixed

@@ -72,6 +72,25 @@ class PopupFollowUpFlowResource extends Resource
                 ->schema([
                     Repeater::make('emails')
                         ->relationship()
+                        ->mutateRelationshipDataBeforeFillUsing(static function (array $data): array {
+                            $locale = app()->getLocale();
+                            foreach (['subject', 'blocks'] as $field) {
+                                if (! array_key_exists($field, $data)) {
+                                    continue;
+                                }
+                                $value = $data[$field];
+                                if (is_array($value) && ! array_is_list($value)) {
+                                    $value = $value[$locale] ?? null;
+                                }
+                                if ($field === 'blocks') {
+                                    $data[$field] = is_array($value) ? array_values($value) : [];
+                                } else {
+                                    $data[$field] = is_string($value) ? $value : '';
+                                }
+                            }
+
+                            return $data;
+                        })
                         ->orderColumn('sort')
                         ->defaultItems(1)
                         ->addActionLabel('Email toevoegen')
