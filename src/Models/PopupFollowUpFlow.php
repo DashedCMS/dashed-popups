@@ -86,7 +86,7 @@ class PopupFollowUpFlow extends Model
                 'subject' => ['nl' => 'Bedankt voor je interesse'],
                 'blocks' => [
                     ['type' => 'paragraph', 'data' => ['content' => '<p>Hi,</p><p>Bedankt voor je inschrijving bij <strong>:siteName:</strong>! Hierbij nogmaals je kortingscode:</p>']],
-                    ['type' => 'discount-highlight', 'data' => []],
+                    ['type' => 'discount', 'data' => ['label' => 'Gebruik deze code voor extra korting:', 'code' => '']],
                     ['type' => 'paragraph', 'data' => ['content' => '<p>Plaats je bestelling snel — de code is een beperkte tijd geldig. Veel plezier met shoppen!</p>']],
                 ],
             ],
@@ -97,7 +97,7 @@ class PopupFollowUpFlow extends Model
                 'subject' => ['nl' => 'Vergeet je korting niet'],
                 'blocks' => [
                     ['type' => 'paragraph', 'data' => ['content' => '<p>Je hebt nog een mooie korting klaarstaan. Bekijk onze bestsellers en gebruik je code:</p>']],
-                    ['type' => 'discount-highlight', 'data' => []],
+                    ['type' => 'discount', 'data' => ['label' => 'Gebruik deze code voor extra korting:', 'code' => '']],
                 ],
             ],
             [
@@ -107,7 +107,7 @@ class PopupFollowUpFlow extends Model
                 'subject' => ['nl' => 'Laatste kans: je korting verloopt binnenkort'],
                 'blocks' => [
                     ['type' => 'paragraph', 'data' => ['content' => '<p>Dit is je laatste herinnering. Je kortingscode loopt binnenkort af:</p>']],
-                    ['type' => 'discount-highlight', 'data' => []],
+                    ['type' => 'discount', 'data' => ['label' => 'Gebruik deze code voor extra korting:', 'code' => '']],
                     ['type' => 'paragraph', 'data' => ['content' => '<p>Plaats vandaag nog je bestelling om er gebruik van te maken.</p>']],
                 ],
             ],

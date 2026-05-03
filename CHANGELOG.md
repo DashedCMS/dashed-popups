@@ -2,6 +2,11 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.13.2 - 2026-05-03
+
+### Fixed
+- `PopupFollowUpFlow::createDefault()` gebruikte `'discount-highlight'` als block-type in de geseede emails. Dat block-type bestaat alleen in de popup-form (`PopupBlockRegistry`), niet in de follow-up flow email-form (waar het block `'discount'` heet). Filament's Builder crashte bij openen van de seeded flow met `Undefined array key "type"` omdat het block-type niet in de geregistreerde blocks zat. Vervangen door `'discount'` met de juiste data-structuur (`label` + `code`).
+
 ## v4.13.1 - 2026-05-03
 
 ### Added
