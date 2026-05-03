@@ -2,6 +2,11 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.12.2 - 2026-05-03
+
+### Fixed
+- `PopupFollowUpFlowResource` was niet geregistreerd in `DashedPopupsPlugin::register()`. Daardoor was de admin-route `/admin/popup-follow-up-flows` niet bereikbaar en konden gebruikers helemaal geen follow-up flow aanmaken — wat ervoor zorgde dat de Popup-form de "Standaard flow gebruiken (indien ingesteld)" placeholder toonde maar er nooit een default flow bestond. Resource nu in de plugin toegevoegd.
+
 ## v4.12.1 - 2026-05-03
 
 ### Added
