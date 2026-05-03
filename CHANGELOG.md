@@ -2,6 +2,11 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.13.6 - 2026-05-03
+
+### Added
+- **Send-time check op popup-conversie -> order match** in `SendPopupFollowUpEmailJob::handle()`. Vlak voor het versturen van een follow-up mail draait de job nu een laatste `PopupOrderMatcher::matchView()` over de `PopupView` (om recente conversies op te pikken die de `OrderMarkedAsPaidEvent`-listener zou hebben gemist) en checkt vervolgens `matched_order_id`. Is die gevuld -> de mail wordt overgeslagen, `follow_up_cancelled_at` wordt gezet zodat alle reeds gequeue-de vervolgstappen ook stoppen. Dit is een minimale defensieve check bovenop de event-driven cancel-listener; ook als de event nooit fired (eigen order-flow, manuele DB-edit, race-condition met queue-delay) komt de bezoeker niet meer in de flow voor.
+
 ## v4.13.5 - 2026-05-03
 
 ### Added

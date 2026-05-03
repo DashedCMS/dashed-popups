@@ -12,6 +12,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Dashed\DashedPopups\Mail\PopupFollowUpMail;
 use Dashed\DashedPopups\Models\PopupFollowUpEmail;
+use Dashed\DashedPopups\Services\PopupOrderMatcher;
 
 class SendPopupFollowUpEmailJob implements ShouldQueue
 {
@@ -49,6 +50,31 @@ class SendPopupFollowUpEmailJob implements ShouldQueue
 
         $address = $view->email;
         if (blank($address)) {
+            return;
+        }
+
+        // Try to match a recent order to this popup view at send-time so that
+        // a fresh conversion (or one missed by the OrderMarkedAsPaidEvent
+        // listener) is detected just before we would otherwise send the next
+        // step in the flow.
+        if ($view->matched_order_id === null && class_exists(PopupOrderMatcher::class)) {
+            try {
+                app(PopupOrderMatcher::class)->matchView($view);
+                $view->refresh();
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+
+        // If the popup conversion has already produced an order, cancel the
+        // remaining follow-up steps and skip this send. The cancellation
+        // mirrors the CancelPopupFollowUpsOnPaidOrder listener so any future
+        // step that has been queued earlier also stops.
+        if ($view->matched_order_id !== null) {
+            if ($view->follow_up_cancelled_at === null) {
+                $view->update(['follow_up_cancelled_at' => now()]);
+            }
+
             return;
         }
 
