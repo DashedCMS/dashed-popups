@@ -78,43 +78,61 @@ class PopupFollowUpFlow extends Model
             'is_default' => true,
         ]);
 
+        $locale = app()->getLocale();
+
+        $buildBlocks = function (array $items): array {
+            $blocks = [];
+            foreach ($items as $item) {
+                $blocks[(string) \Illuminate\Support\Str::uuid()] = $item;
+            }
+
+            return $blocks;
+        };
+
         $emails = [
             [
                 'sort' => 1,
                 'send_after_minutes' => 60,
                 'is_active' => true,
-                'subject' => ['nl' => 'Bedankt voor je interesse'],
-                'blocks' => [
+                'subject' => 'Bedankt voor je interesse',
+                'blocks' => $buildBlocks([
                     ['type' => 'paragraph', 'data' => ['content' => '<p>Hi,</p><p>Bedankt voor je inschrijving bij <strong>:siteName:</strong>! Hierbij nogmaals je kortingscode:</p>']],
                     ['type' => 'discount', 'data' => ['label' => 'Gebruik deze code voor extra korting:', 'code' => '']],
                     ['type' => 'paragraph', 'data' => ['content' => '<p>Plaats je bestelling snel — de code is een beperkte tijd geldig. Veel plezier met shoppen!</p>']],
-                ],
+                ]),
             ],
             [
                 'sort' => 2,
                 'send_after_minutes' => 60 * 24,
                 'is_active' => true,
-                'subject' => ['nl' => 'Vergeet je korting niet'],
-                'blocks' => [
+                'subject' => 'Vergeet je korting niet',
+                'blocks' => $buildBlocks([
                     ['type' => 'paragraph', 'data' => ['content' => '<p>Je hebt nog een mooie korting klaarstaan. Bekijk onze bestsellers en gebruik je code:</p>']],
                     ['type' => 'discount', 'data' => ['label' => 'Gebruik deze code voor extra korting:', 'code' => '']],
-                ],
+                ]),
             ],
             [
                 'sort' => 3,
                 'send_after_minutes' => 60 * 72,
                 'is_active' => true,
-                'subject' => ['nl' => 'Laatste kans: je korting verloopt binnenkort'],
-                'blocks' => [
+                'subject' => 'Laatste kans: je korting verloopt binnenkort',
+                'blocks' => $buildBlocks([
                     ['type' => 'paragraph', 'data' => ['content' => '<p>Dit is je laatste herinnering. Je kortingscode loopt binnenkort af:</p>']],
                     ['type' => 'discount', 'data' => ['label' => 'Gebruik deze code voor extra korting:', 'code' => '']],
                     ['type' => 'paragraph', 'data' => ['content' => '<p>Plaats vandaag nog je bestelling om er gebruik van te maken.</p>']],
-                ],
+                ]),
             ],
         ];
 
-        foreach ($emails as $email) {
-            $flow->emails()->create($email);
+        foreach ($emails as $emailData) {
+            $email = $flow->emails()->make([
+                'sort' => $emailData['sort'],
+                'send_after_minutes' => $emailData['send_after_minutes'],
+                'is_active' => $emailData['is_active'],
+            ]);
+            $email->setTranslation('subject', $locale, $emailData['subject']);
+            $email->setTranslation('blocks', $locale, $emailData['blocks']);
+            $email->save();
         }
 
         return $flow;

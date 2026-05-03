@@ -2,6 +2,11 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.13.3 - 2026-05-03
+
+### Fixed
+- `PopupFollowUpFlow::createDefault()` storede blocks als indexed array; Filament's Builder verwacht een UUID-keyed object (zoals het zelf zou serialiseren bij UI-create). Bij openen van de seeded flow crashte Filament's getBlockPickerBlocks omdat de iteratie over de wrapped translatable structuur items zonder `type` key aantrof. Blocks nu opgebouwd met UUID-keys via `Str::uuid()`, en gestored via `setTranslation()` voor expliciete locale-wrapping.
+
 ## v4.13.2 - 2026-05-03
 
 ### Fixed
