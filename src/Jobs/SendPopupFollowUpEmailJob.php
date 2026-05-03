@@ -3,15 +3,15 @@
 namespace Dashed\DashedPopups\Jobs;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Queue\InteractsWithQueue;
+use Dashed\DashedPopups\Models\PopupView;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
 use Dashed\DashedPopups\Mail\PopupFollowUpMail;
 use Dashed\DashedPopups\Models\PopupFollowUpEmail;
-use Dashed\DashedPopups\Models\PopupView;
 
 class SendPopupFollowUpEmailJob implements ShouldQueue
 {
@@ -61,6 +61,7 @@ class SendPopupFollowUpEmailJob implements ShouldQueue
                 'follow_up_email_id' => $email->id,
                 'error' => $e->getMessage(),
             ]);
+
             throw $e;
         }
     }

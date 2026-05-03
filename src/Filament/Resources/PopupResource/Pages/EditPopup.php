@@ -4,10 +4,10 @@ namespace Dashed\DashedPopups\Filament\Resources\PopupResource\Pages;
 
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
-use Filament\Forms\Components\Toggle;
 use Illuminate\Support\Collection;
 use Illuminate\Contracts\View\View;
 use Dashed\DashedPopups\Models\Popup;
+use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use LaraZeus\SpatieTranslatable\Actions\LocaleSwitcher;

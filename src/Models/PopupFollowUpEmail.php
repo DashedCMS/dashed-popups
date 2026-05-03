@@ -3,8 +3,8 @@
 namespace Dashed\DashedPopups\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Translatable\HasTranslations;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PopupFollowUpEmail extends Model
 {

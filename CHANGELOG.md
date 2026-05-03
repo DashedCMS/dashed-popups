@@ -2,6 +2,14 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.12.0 - 2026-05-03
+
+### Added
+- **Backfill-knop op PopupFollowUpFlow.** Op de bewerk-pagina van een follow-up flow staat nu de actie "Toepassen op bestaande" die de emails van de flow alsnog plant voor `PopupView`-records waar de bezoeker al een email heeft ingevuld (`submitted_at` gevuld) maar nog niet in een follow-up flow zit. Configureerbaar venster (1–365 dagen, default 30). Skipt views die al gestart, geannuleerd of zonder email zijn, en views waarvan de popup een ander resolveFollowUpFlow() teruggeeft.
+- Nieuwe service `Services\BackfillPopupFollowUpFlowService` met statistics-array (`views_started`, `views_skipped_*`, `emails_dispatched`).
+- `PopupView::followUpStatus()` retourneert: `not_in_flow`, `cancelled`, `finished` of `step_X_of_Y` op basis van `follow_up_started_at`, `follow_up_cancelled_at` en de `send_after_minutes` van de actieve emails. Geeft inzicht waar elke bezoeker zit in de flow zonder extra log-tabel.
+- Nieuwe kolom in de Conversions-tabel (op de Popup edit-pagina): "Follow-up flow" badge met de huidige status — geannuleerd, niet in flow, afgerond, of "Stap X van Y".
+
 ## v4.11.0 - 2026-05-02
 
 ### Added

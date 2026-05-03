@@ -1,10 +1,10 @@
 <?php
 
-use Dashed\DashedPopups\Jobs\SyncPopupSubmissionToNewsletterJob;
-use Dashed\DashedPopups\Models\Popup;
-use Dashed\DashedPopups\Models\PopupView;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Log;
+use Dashed\DashedPopups\Models\Popup;
+use Dashed\DashedPopups\Models\PopupView;
+use Dashed\DashedPopups\Jobs\SyncPopupSubmissionToNewsletterJob;
 
 /**
  * Build a minimal Popup record straight from the schema. We cannot use

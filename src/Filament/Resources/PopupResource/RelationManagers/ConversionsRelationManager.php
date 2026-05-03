@@ -88,6 +88,22 @@ class ConversionsRelationManager extends RelationManager
 
                         return \Dashed\DashedEcommerceCore\Filament\Resources\OrderResource::getUrl('edit', ['record' => $record->matched_order_id]);
                     }, shouldOpenInNewTab: true),
+                TextColumn::make('follow_up_status')
+                    ->label('Follow-up flow')
+                    ->state(fn ($record) => match ($record->followUpStatus()) {
+                        'cancelled' => 'Geannuleerd',
+                        'not_in_flow' => 'Niet in flow',
+                        'finished' => 'Afgerond',
+                        default => str_replace(['step_', '_of_'], ['Stap ', ' van '], $record->followUpStatus()),
+                    })
+                    ->badge()
+                    ->color(fn ($record) => match (true) {
+                        str_starts_with($record->followUpStatus(), 'step_') => 'warning',
+                        $record->followUpStatus() === 'finished' => 'success',
+                        $record->followUpStatus() === 'cancelled' => 'danger',
+                        default => 'gray',
+                    })
+                    ->toggleable(),
                 TextColumn::make('discountCode.code')
                     ->label('Kortingscode')
                     ->copyable()

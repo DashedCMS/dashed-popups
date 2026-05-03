@@ -3,8 +3,8 @@
 namespace Dashed\DashedPopups;
 
 use Livewire\Livewire;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Event;
 use Dashed\DashedPopups\Livewire\Popup;
 use Spatie\LaravelPackageTools\Package;
 use Illuminate\Console\Scheduling\Schedule;
@@ -12,12 +12,11 @@ use Dashed\DashedPopups\Policies\PopupPolicy;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Dashed\DashedPopups\Commands\RollupPopupStatsCommand;
 use Dashed\DashedPopups\Filament\Resources\PopupResource;
-use Dashed\DashedPopups\Filament\Resources\PopupFollowUpFlowResource;
 use Dashed\DashedPopups\Filament\Widgets\PopupFunnelWidget;
-use Dashed\DashedPopups\Listeners\CancelPopupFollowUpsOnPaidOrder;
 use Dashed\DashedPopups\Livewire\Admin\PopupAnalyticsPanel;
 use Dashed\DashedPopups\Commands\BackfillPopupOrderMatchesCommand;
 use Dashed\DashedPopups\Filament\Widgets\PopupPerformanceOverview;
+use Dashed\DashedPopups\Listeners\CancelPopupFollowUpsOnPaidOrder;
 
 class DashedPopupsServiceProvider extends PackageServiceProvider
 {
