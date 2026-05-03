@@ -35,6 +35,10 @@ class BackfillPopupFollowUpFlowService
             'emails_dispatched' => 0,
         ];
 
+        if (! $flow->is_active) {
+            return $stats;
+        }
+
         $emails = $flow->activeEmails()->orderBy('sort')->get();
 
         if ($emails->isEmpty()) {

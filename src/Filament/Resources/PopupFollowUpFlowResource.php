@@ -56,6 +56,10 @@ class PopupFollowUpFlowResource extends Resource
                         ->required()
                         ->maxLength(255)
                         ->columnSpanFull(),
+                    Toggle::make('is_active')
+                        ->label('Actieve flow')
+                        ->default(true)
+                        ->helperText('Slechts één flow kan actief zijn tegelijk. Een nieuwe actieve flow zet de vorige automatisch op inactive.'),
                     Toggle::make('is_default')
                         ->label('Standaard flow')
                         ->helperText('De standaard flow wordt gebruikt voor popups die zelf geen flow hebben gekozen. Slechts één flow tegelijk kan standaard zijn.'),
@@ -199,6 +203,11 @@ class PopupFollowUpFlowResource extends Resource
                     ->counts('emails')
                     ->badge()
                     ->color('info'),
+                IconColumn::make('is_active')
+                    ->label('Actief')
+                    ->boolean()
+                    ->trueColor('success')
+                    ->falseColor('gray'),
                 IconColumn::make('is_default')
                     ->label('Standaard')
                     ->boolean(),

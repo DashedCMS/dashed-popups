@@ -115,7 +115,9 @@ class Popup extends Model
     public function resolveFollowUpFlow(): ?PopupFollowUpFlow
     {
         if ($this->follow_up_flow_id) {
-            return PopupFollowUpFlow::find($this->follow_up_flow_id);
+            $flow = PopupFollowUpFlow::find($this->follow_up_flow_id);
+
+            return ($flow && $flow->is_active) ? $flow : null;
         }
 
         return PopupFollowUpFlow::default();

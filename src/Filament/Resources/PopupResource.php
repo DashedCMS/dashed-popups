@@ -219,9 +219,9 @@ class PopupResource extends Resource
                 ->schema([
                     Select::make('follow_up_flow_id')
                         ->label('Flow')
-                        ->options(\Dashed\DashedPopups\Models\PopupFollowUpFlow::query()->orderBy('name')->pluck('name', 'id')->toArray())
+                        ->options(\Dashed\DashedPopups\Models\PopupFollowUpFlow::query()->where('is_active', true)->orderBy('name')->pluck('name', 'id')->toArray())
                         ->placeholder('— Standaard flow gebruiken (indien ingesteld) —')
-                        ->helperText('Kies een specifieke flow voor deze popup. Leeg laten = de globaal als standaard gemarkeerde flow wordt gebruikt; is er geen standaard, dan worden er geen follow-ups verstuurd.')
+                        ->helperText('Kies een specifieke flow voor deze popup. Leeg laten = de globaal als standaard gemarkeerde actieve flow wordt gebruikt; is er geen actieve standaard, dan worden er geen follow-ups verstuurd.')
                         ->columnSpanFull(),
                 ])
                 ->columnSpanFull(),

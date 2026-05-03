@@ -2,6 +2,18 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.13.0 - 2026-05-03
+
+### Added
+- **`is_active` toggle op PopupFollowUpFlow** — mirror van het abandoned-cart-flow patroon. Slechts één flow tegelijk kan actief zijn (model-`saved`-hook zet anderen automatisch op inactive bij save). Filament-form heeft een Toggle, list-table heeft een IconColumn.
+- Migration `add_is_active_to_popup_follow_up_flows` voegt de boolean kolom toe (default `true`) en zet bestaande rijen op `is_active=true` zodat upgrade niets breekt.
+- `Popup::resolveFollowUpFlow()` retourneert alleen flows met `is_active=true` (zowel voor expliciete `follow_up_flow_id` op de popup als de globale `default()`).
+- Popup-form select toont alleen actieve flows als keuze; placeholder is bijgewerkt naar "actieve standaard".
+- `BackfillPopupFollowUpFlowService::run()` schiet niets in als de flow `is_active=false`.
+
+### Changed
+- `PopupFollowUpFlow::default()` filtert nu ook op `is_active=true` — een inactieve flow kan nooit als default fungeren, ook niet als `is_default=true`.
+
 ## v4.12.2 - 2026-05-03
 
 ### Fixed
