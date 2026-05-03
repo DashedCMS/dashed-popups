@@ -2,6 +2,12 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.13.1 - 2026-05-03
+
+### Added
+- **Knop "Maak standaard flow aan"** op `/admin/popup-follow-up-flows` — mirror van het abandoned-cart-flow patroon. Maakt een complete `PopupFollowUpFlow` aan met 3 zinnige opvolg-stappen (1 uur, 24 uur, 72 uur na conversie), elk met een paragraph-block + discount-highlight-block, en zet de flow direct op `is_active` + `is_default`.
+- Nieuwe statische `PopupFollowUpFlow::createDefault()` method die de seed uitvoert.
+
 ## v4.13.0 - 2026-05-03
 
 ### Added
