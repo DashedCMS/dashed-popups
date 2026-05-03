@@ -2,6 +2,12 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.12.1 - 2026-05-03
+
+### Added
+- **Backfill-knop op de Popup zelf** (in aanvulling op de flow-niveau actie van v4.12.0). De Popup edit-pagina toont nu de actie "Follow-up flow toepassen op bestaande inzendingen" die alleen de inzendingen van DEZE popup in de bijbehorende flow zet. Handig wanneer je per popup wil backfillen ipv flow-breed. Visible alleen als de popup een resolveFollowUpFlow() heeft.
+- `BackfillPopupFollowUpFlowService::run()` heeft een optionele `$onlyPopupId` parameter waarmee de backfill gescoped wordt op één specifieke popup ipv alle popups die de flow gebruiken.
+
 ## v4.12.0 - 2026-05-03
 
 ### Added

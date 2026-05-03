@@ -25,7 +25,7 @@ class BackfillPopupFollowUpFlowService
      *     emails_dispatched: int,
      * }
      */
-    public function run(PopupFollowUpFlow $flow, int $sinceDays = 30): array
+    public function run(PopupFollowUpFlow $flow, int $sinceDays = 30, ?int $onlyPopupId = null): array
     {
         $stats = [
             'views_started' => 0,
@@ -43,13 +43,17 @@ class BackfillPopupFollowUpFlowService
 
         $since = Carbon::now()->subDays(max(1, $sinceDays))->startOfDay();
 
-        $candidatePopupIds = \Dashed\DashedPopups\Models\Popup::query()
-            ->where(function ($q) use ($flow) {
-                $q->where('follow_up_flow_id', $flow->id)
-                    ->orWhereNull('follow_up_flow_id');
-            })
-            ->pluck('id')
-            ->all();
+        if ($onlyPopupId !== null) {
+            $candidatePopupIds = [$onlyPopupId];
+        } else {
+            $candidatePopupIds = \Dashed\DashedPopups\Models\Popup::query()
+                ->where(function ($q) use ($flow) {
+                    $q->where('follow_up_flow_id', $flow->id)
+                        ->orWhereNull('follow_up_flow_id');
+                })
+                ->pluck('id')
+                ->all();
+        }
 
         if (empty($candidatePopupIds)) {
             return $stats;

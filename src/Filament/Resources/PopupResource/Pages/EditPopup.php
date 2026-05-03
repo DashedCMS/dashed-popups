@@ -8,12 +8,14 @@ use Illuminate\Support\Collection;
 use Illuminate\Contracts\View\View;
 use Dashed\DashedPopups\Models\Popup;
 use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use LaraZeus\SpatieTranslatable\Actions\LocaleSwitcher;
 use Dashed\DashedPopups\Filament\Resources\PopupResource;
 use Dashed\DashedPopups\Filament\Widgets\PopupFunnelWidget;
 use Dashed\DashedPopups\Jobs\SyncPopupSubmissionToNewsletterJob;
+use Dashed\DashedPopups\Services\BackfillPopupFollowUpFlowService;
 use Dashed\DashedPopups\Filament\Resources\PopupResource\Concerns\SyncsPopupTargets;
 
 class EditPopup extends EditRecord
@@ -108,6 +110,57 @@ class EditPopup extends EditRecord
                     $record,
                     resendAll: (bool) ($data['resendAll'] ?? false),
                 )),
+            Action::make('backfillFollowUpFlow')
+                ->label('Follow-up flow toepassen op bestaande inzendingen')
+                ->icon('heroicon-o-arrow-uturn-left')
+                ->color('warning')
+                ->visible(fn ($record): bool => $record?->resolveFollowUpFlow() !== null)
+                ->modalHeading('Follow-up flow toepassen op bestaande popup-conversies')
+                ->modalDescription(fn ($record) => sprintf(
+                    'Plant alsnog de emails van de flow "%s" voor inzendingen van deze popup die nog niet in een follow-up zitten. Records die al gestart of geannuleerd zijn worden overgeslagen.',
+                    $record?->resolveFollowUpFlow()?->name ?? '?',
+                ))
+                ->schema([
+                    TextInput::make('since_days')
+                        ->label('Aantal dagen terug')
+                        ->helperText('Backfill geldt voor PopupViews waarvan submitted_at binnen de afgelopen X dagen valt.')
+                        ->numeric()
+                        ->minValue(1)
+                        ->maxValue(365)
+                        ->default(30)
+                        ->required(),
+                ])
+                ->action(function ($record, array $data): void {
+                    $flow = $record->resolveFollowUpFlow();
+
+                    if (! $flow) {
+                        Notification::make()
+                            ->title('Geen follow-up flow gekoppeld')
+                            ->warning()
+                            ->send();
+
+                        return;
+                    }
+
+                    $stats = app(BackfillPopupFollowUpFlowService::class)->run(
+                        flow: $flow,
+                        sinceDays: (int) ($data['since_days'] ?? 30),
+                        onlyPopupId: (int) $record->id,
+                    );
+
+                    Notification::make()
+                        ->title('Backfill voltooid')
+                        ->body(sprintf(
+                            'Gestart: %d. Al gestart: %d. Geannuleerd: %d. Geen email: %d. Emails ingepland: %d.',
+                            $stats['views_started'],
+                            $stats['views_skipped_already_started'],
+                            $stats['views_skipped_cancelled'],
+                            $stats['views_skipped_no_email'],
+                            $stats['emails_dispatched'],
+                        ))
+                        ->success()
+                        ->send();
+                }),
             DeleteAction::make(),
         ];
     }
