@@ -2,6 +2,12 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.13.7 - 2026-05-04
+
+### Added
+- **Afmeld-link onderaan elke popup-follow-up-mail**. Nieuwe signed route `dashed.frontend.popup-follow-up.unsubscribe` op `/popup-follow-up/unsubscribe/{view}` met `PopupFollowUpUnsubscribeController`: zet `PopupView::follow_up_cancelled_at = now()` zodat de bestaande check in `SendPopupFollowUpEmailJob::handle()` alle reeds geplande vervolgstappen overslaat. Toont een bevestigingspagina. `PopupFollowUpMail::build()` levert nu `$unsubscribeUrl` (signed) en `$unsubscribeLabel` aan de gedeelde `dashed-core::emails.layout` (vereist `dashed-core` v4.3.4+).
+- Routes worden nu geladen via `loadRoutesFrom(__DIR__.'/../routes/frontend.php')` in `DashedPopupsServiceProvider::configurePackage()`.
+
 ## v4.13.6 - 2026-05-03
 
 ### Added

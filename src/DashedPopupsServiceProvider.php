@@ -108,6 +108,7 @@ MARKDOWN,
     public function configurePackage(Package $package): void
     {
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        $this->loadRoutesFrom(__DIR__.'/../routes/frontend.php');
 
         $this->mergeConfigFrom(__DIR__.'/../config/popups.php', 'popups');
 

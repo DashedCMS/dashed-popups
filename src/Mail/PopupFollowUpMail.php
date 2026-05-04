@@ -91,6 +91,18 @@ class PopupFollowUpMail extends Mailable
             }
         }
 
+        $unsubscribeUrl = null;
+        if ($this->popupView->id ?? null) {
+            try {
+                $unsubscribeUrl = \Illuminate\Support\Facades\URL::signedRoute(
+                    'dashed.frontend.popup-follow-up.unsubscribe',
+                    ['view' => $this->popupView->id],
+                );
+            } catch (\Throwable $e) {
+                $unsubscribeUrl = null;
+            }
+        }
+
         $mail = $this
             ->subject($subject)
             ->view('dashed-core::emails.layout')
@@ -104,6 +116,8 @@ class PopupFollowUpMail extends Mailable
                 'textColor' => $textColor,
                 'backgroundColor' => $backgroundColor,
                 'footerText' => $footerText,
+                'unsubscribeUrl' => $unsubscribeUrl,
+                'unsubscribeLabel' => 'Afmelden voor deze popup-opvolg-mails',
             ]);
 
         $fromEmail = $this->resolveFromEmail();
