@@ -304,6 +304,10 @@ class PopupResource extends Resource
                     ->label('Submits')
                     ->counts(['views as submits_count' => fn ($q) => $q->whereNotNull('submitted_at')])
                     ->sortable(),
+                TextColumn::make('in_flow_count')
+                    ->label('In flow')
+                    ->counts(['views as in_flow_count' => fn ($q) => $q->whereNotNull('follow_up_started_at')->whereNull('follow_up_cancelled_at')])
+                    ->sortable(),
                 TextColumn::make('conversion')
                     ->label('Conversie')
                     ->getStateUsing(function ($record) {

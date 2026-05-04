@@ -2,6 +2,12 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.13.9 - 2026-05-04
+
+### Changed
+- **Popups list-pagina is nu full-width** (`ListPopups::getMaxContentWidth()` -> `Width::Full`) zodat de tabel met statistiek-kolommen niet meer afgekapt wordt op bredere schermen.
+- **Nieuwe kolom "In flow"** in de popups-tabel naast Submits. Telt actieve `PopupView`-records met `follow_up_started_at IS NOT NULL` en `follow_up_cancelled_at IS NULL` (sortable). Geeft per popup snel inzicht hoeveel mensen op dit moment in een follow-up-flow zitten.
+
 ## v4.13.8 - 2026-05-04
 
 ### Changed

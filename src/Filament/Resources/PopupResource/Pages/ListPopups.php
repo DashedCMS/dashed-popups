@@ -9,6 +9,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Support\Enums\Width;
 use Dashed\DashedPopups\Filament\Resources\PopupResource;
 use Dashed\DashedPopups\PopupTemplates\PopupTemplateRegistry;
 use Dashed\DashedPopups\Filament\Widgets\PopupPerformanceOverview;
@@ -16,6 +17,11 @@ use Dashed\DashedPopups\Filament\Widgets\PopupPerformanceOverview;
 class ListPopups extends ListRecords
 {
     protected static string $resource = PopupResource::class;
+
+    public function getMaxContentWidth(): Width | string | null
+    {
+        return Width::Full;
+    }
 
     protected function getHeaderWidgets(): array
     {
