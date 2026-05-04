@@ -117,7 +117,7 @@ class PopupFollowUpMail extends Mailable
                 'backgroundColor' => $backgroundColor,
                 'footerText' => $footerText,
                 'unsubscribeUrl' => $unsubscribeUrl,
-                'unsubscribeLabel' => 'Afmelden voor deze popup-opvolg-mails',
+                'unsubscribeLabel' => 'Afmelden',
             ]);
 
         $fromEmail = $this->resolveFromEmail();

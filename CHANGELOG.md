@@ -2,6 +2,11 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.13.8 - 2026-05-04
+
+### Changed
+- Afmeld-link onderaan popup-follow-up-mails toont nu simpel **"Afmelden"** ipv "Afmelden voor deze popup-opvolg-mails".
+
 ## v4.13.7 - 2026-05-04
 
 ### Added
