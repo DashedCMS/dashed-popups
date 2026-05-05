@@ -2,6 +2,11 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.13.10 - 2026-05-05
+
+### Fixed
+- `SendPopupFollowUpEmailJob` faalt niet meer als de mail-transport een hard error geeft (bijv. Postmark `406 Inactive recipient`). De error wordt gerapporteerd, `follow_up_cancelled_at` wordt gezet op de `PopupView` zodat vervolgstappen niet opnieuw geprobeerd worden, en de job zelf rondt succesvol af zodat hij niet eindeloos retried wordt.
+
 ## v4.13.9 - 2026-05-04
 
 ### Changed

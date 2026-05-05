@@ -88,7 +88,14 @@ class SendPopupFollowUpEmailJob implements ShouldQueue
                 'error' => $e->getMessage(),
             ]);
 
-            throw $e;
+            // Postmark/SES e.d. leveren een hard error voor inactive
+            // adressen (hard bounce / spam complaint). Verdere stappen
+            // voor dezelfde ontvanger zouden ook falen, dus we
+            // cancellen de flow en laten de job slagen zodat hij niet
+            // eindeloos retried wordt.
+            if ($view->follow_up_cancelled_at === null) {
+                $view->forceFill(['follow_up_cancelled_at' => now()])->save();
+            }
         }
     }
 }
