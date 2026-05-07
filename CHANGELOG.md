@@ -2,6 +2,11 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.14.5 - 2026-05-07
+
+### Changed
+- Style-pass: Pint heeft de `use`-volgorde herschikt in beide nieuwe index-migraties (geen runtime-impact).
+
 ## v4.14.4 - 2026-05-07
 
 ### Changed

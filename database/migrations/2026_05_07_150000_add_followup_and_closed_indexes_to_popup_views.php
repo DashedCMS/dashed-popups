@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Migrations\Migration;
 
 /**
  * Voegt twee composite-indexes toe op `dashed__popup_views` om de
