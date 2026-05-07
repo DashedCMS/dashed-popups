@@ -14,13 +14,19 @@ class RollupService
     {
         $bounceMs = (int) config('popups.analytics.bounce_threshold_ms', 2000);
         $dateStr = $date->toDateString();
+        $start = $date->copy()->startOfDay()->toDateTimeString();
+        $end = $date->copy()->addDay()->startOfDay()->toDateTimeString();
 
-        DB::transaction(function () use ($popupId, $dateStr, $bounceMs) {
+        DB::transaction(function () use ($popupId, $dateStr, $start, $end, $bounceMs) {
             DB::table('dashed__popup_stats_daily')
                 ->where('popup_id', $popupId)
                 ->whereDate('date', $dateStr)
                 ->delete();
 
+            // first_seen_at >= ? AND first_seen_at < ? (range filter) lets MySQL
+            // use the (popup_id, first_seen_at) index. DATE(first_seen_at) = ?
+            // forced a function call per row and turned this into a full scan
+            // of all rows for the popup (millions on large installs).
             DB::statement(<<<'SQL'
                 INSERT INTO dashed__popup_stats_daily
                   (popup_id, date, device_type, triggered_by,
@@ -46,9 +52,11 @@ class RollupService
                                      ELSE 0 END), 0) AS sum_tts,
                   NOW(), NOW()
                 FROM dashed__popup_views
-                WHERE popup_id = ? AND DATE(first_seen_at) = ?
+                WHERE popup_id = ?
+                  AND first_seen_at >= ?
+                  AND first_seen_at < ?
                 GROUP BY popup_id, `date`, device_type, triggered_by
-            SQL, [$bounceMs, $popupId, $dateStr]);
+            SQL, [$bounceMs, $popupId, $start, $end]);
         });
     }
 
