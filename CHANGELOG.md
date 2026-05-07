@@ -2,6 +2,11 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.14.2 - 2026-05-07
+
+### Fixed
+- Popups-overzichtspagina bleef oneindig laden op installaties zonder popups. `PopupPerformanceOverview` widget heeft nu een vroege return wanneer `Popup::count() === 0`: 4 zero-stats direct teruggegeven zonder Cache-roundtrip of MetricsResolver-aanroep. De `MetricsResolver::forPopup`-aanroep is bovendien defensief in een try/catch met `report()` zodat een falende rollup-query voor 1 popup niet de hele overview-render blokkeert.
+
 ## v4.14.1 - 2026-05-07
 
 ### Changed
