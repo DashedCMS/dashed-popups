@@ -2,12 +2,12 @@
 
 namespace Dashed\DashedPopups\Filament\Resources\PopupFollowUpFlowResource\Pages;
 
-use Dashed\DashedPopups\Filament\Resources\PopupFollowUpFlowResource;
-use Dashed\DashedPopups\Models\PopupFollowUpFlow;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
+use Dashed\DashedPopups\Models\PopupFollowUpFlow;
+use Dashed\DashedPopups\Filament\Resources\PopupFollowUpFlowResource;
 
 class ListPopupFollowUpFlows extends ListRecords
 {

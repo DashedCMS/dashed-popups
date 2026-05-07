@@ -3,13 +3,13 @@
 namespace Dashed\DashedPopups\Filament\Resources\PopupResource\Pages;
 
 use Filament\Actions\Action;
+use Filament\Support\Enums\Width;
 use Filament\Actions\CreateAction;
 use Dashed\DashedPopups\Models\Popup;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Support\Enums\Width;
 use Dashed\DashedPopups\Filament\Resources\PopupResource;
 use Dashed\DashedPopups\PopupTemplates\PopupTemplateRegistry;
 use Dashed\DashedPopups\Filament\Widgets\PopupPerformanceOverview;

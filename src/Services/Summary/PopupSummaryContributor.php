@@ -2,11 +2,11 @@
 
 namespace Dashed\DashedPopups\Services\Summary;
 
-use Dashed\DashedCore\Services\Summary\Contracts\SummaryContributorInterface;
-use Dashed\DashedCore\Services\Summary\DTOs\SummaryPeriod;
-use Dashed\DashedCore\Services\Summary\DTOs\SummarySection;
 use Dashed\DashedPopups\Models\Popup;
 use Dashed\DashedPopups\Models\PopupView;
+use Dashed\DashedCore\Services\Summary\DTOs\SummaryPeriod;
+use Dashed\DashedCore\Services\Summary\DTOs\SummarySection;
+use Dashed\DashedCore\Services\Summary\Contracts\SummaryContributorInterface;
 
 /**
  * Bouwt de popup-sectie van de admin samenvatting-mail. Toont totaal

@@ -2,6 +2,11 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.14.1 - 2026-05-07
+
+### Changed
+- Style-pass: import-statement volgorde gecorrigeerd door Pint in 8 bestanden (geen runtime-impact). Geraakt: 2 migraties, `PopupFollowUpFlowResource` + Pages, `PopupResource\Pages\ListPopups`, `BackfillPopupFollowUpFlowService` en `PopupSummaryContributor`.
+
 ## v4.14.0 - 2026-05-07
 
 ### Added

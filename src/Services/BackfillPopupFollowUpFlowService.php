@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Dashed\DashedPopups\Services;
 
-use Dashed\DashedPopups\Jobs\SendPopupFollowUpEmailJob;
-use Dashed\DashedPopups\Models\PopupFollowUpFlow;
-use Dashed\DashedPopups\Models\PopupView;
 use Illuminate\Support\Carbon;
+use Dashed\DashedPopups\Models\PopupView;
+use Dashed\DashedPopups\Models\PopupFollowUpFlow;
+use Dashed\DashedPopups\Jobs\SendPopupFollowUpEmailJob;
 
 /**
  * Backfill: voor een nieuwe of gewijzigde popup follow-up flow plant alsnog
