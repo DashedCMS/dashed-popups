@@ -41,6 +41,7 @@ class PopupPerformanceOverview extends StatsOverviewWidget
                     $m = $resolver->forPopup((int) $popupId, $from, $to);
                 } catch (\Throwable $e) {
                     report($e);
+
                     continue;
                 }
                 $totalViews += $m['views'] ?? 0;

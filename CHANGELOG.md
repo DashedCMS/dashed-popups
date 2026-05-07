@@ -2,6 +2,14 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.14.4 - 2026-05-07
+
+### Changed
+- Twee nieuwe composite-indexes op `dashed__popup_views` voor de statistiek-kolommen op de PopupResource-overzichtspagina:
+  - `popup_views_pid_followup_idx (popup_id, follow_up_started_at, follow_up_cancelled_at)` voor de "In flow"-kolom.
+  - `popup_views_pid_closed_idx (popup_id, closed_at)` voor de "Wegklik"-kolom en bounce-rate berekeningen.
+- Beide indexes worden via `CREATE INDEX ... ALGORITHM=INPLACE LOCK=NONE` toegevoegd zodat een grote `popup_views`-tabel geen schrijflock krijgt tijdens de migratie. Samen met de `popup_views_pid_first_seen_idx` en `popup_views_pid_created_at_idx` uit v4.14.0 dekken deze indexes alle telkolommen op de overzichtspagina, ook bij honderdduizenden views.
+
 ## v4.14.2 - 2026-05-07
 
 ### Fixed
