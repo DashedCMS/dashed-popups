@@ -11,6 +11,7 @@ use Illuminate\Console\Scheduling\Schedule;
 use Dashed\DashedPopups\Policies\PopupPolicy;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Dashed\DashedPopups\Commands\RollupPopupStatsCommand;
+use Dashed\DashedPopups\Commands\RecalculatePopupStatsCommand;
 use Dashed\DashedPopups\Filament\Resources\PopupResource;
 use Dashed\DashedPopups\Filament\Widgets\PopupFunnelWidget;
 use Dashed\DashedPopups\Livewire\Admin\PopupAnalyticsPanel;
@@ -34,6 +35,7 @@ class DashedPopupsServiceProvider extends PackageServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 RollupPopupStatsCommand::class,
+                RecalculatePopupStatsCommand::class,
                 BackfillPopupOrderMatchesCommand::class,
             ]);
         }
@@ -42,6 +44,7 @@ class DashedPopupsServiceProvider extends PackageServiceProvider
             /** @var Schedule $schedule */
             $schedule = app(Schedule::class);
             $schedule->command('popups:rollup-stats')->dailyAt('02:00');
+            $schedule->command('dashed:recalculate-popup-stats')->hourly()->withoutOverlapping();
         });
 
         //        $this->app->booted(function () {

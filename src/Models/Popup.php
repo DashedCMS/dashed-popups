@@ -34,6 +34,16 @@ class Popup extends Model
         'ai_analyzed_at' => 'datetime',
         'api_subscriptions' => 'array',
         'follow_up_flow_id' => 'integer',
+        'cached_views_count' => 'integer',
+        'cached_submits_count' => 'integer',
+        'cached_dismissals_count' => 'integer',
+        'cached_in_flow_count' => 'integer',
+        'cached_views_30d' => 'integer',
+        'cached_submits_30d' => 'integer',
+        'cached_dismissals_30d' => 'integer',
+        'cached_bounces_30d' => 'integer',
+        'cached_revenue_30d' => 'decimal:2',
+        'stats_recalculated_at' => 'datetime',
     ];
 
     protected static function booted(): void

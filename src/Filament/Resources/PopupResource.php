@@ -296,35 +296,31 @@ class PopupResource extends Resource
                 IconColumn::make('active')
                     ->label('Actief')
                     ->boolean(),
-                TextColumn::make('views_count')
+                TextColumn::make('cached_views_count')
                     ->label('Impressies')
-                    ->counts('views')
                     ->sortable(),
-                TextColumn::make('submits_count')
+                TextColumn::make('cached_submits_count')
                     ->label('Submits')
-                    ->counts(['views as submits_count' => fn ($q) => $q->whereNotNull('submitted_at')])
                     ->sortable(),
-                TextColumn::make('in_flow_count')
+                TextColumn::make('cached_in_flow_count')
                     ->label('In flow')
-                    ->counts(['views as in_flow_count' => fn ($q) => $q->whereNotNull('follow_up_started_at')->whereNull('follow_up_cancelled_at')])
                     ->sortable(),
                 TextColumn::make('conversion')
                     ->label('Conversie')
                     ->getStateUsing(function ($record) {
-                        $views = (int) ($record->views_count ?? 0);
-                        $submits = (int) ($record->submits_count ?? 0);
+                        $views = (int) ($record->cached_views_count ?? 0);
+                        $submits = (int) ($record->cached_submits_count ?? 0);
 
                         return $views > 0 ? round(($submits / $views) * 100, 1).'%' : '-';
                     }),
-                TextColumn::make('dismissals_count')
+                TextColumn::make('cached_dismissals_count')
                     ->label('Wegklik')
-                    ->counts(['views as dismissals_count' => fn ($q) => $q->whereNotNull('closed_at')->whereNull('submitted_at')])
                     ->sortable(),
                 TextColumn::make('dismissal_rate')
                     ->label('Wegklik %')
                     ->getStateUsing(function ($record) {
-                        $views = (int) ($record->views_count ?? 0);
-                        $dismissals = (int) ($record->dismissals_count ?? 0);
+                        $views = (int) ($record->cached_views_count ?? 0);
+                        $dismissals = (int) ($record->cached_dismissals_count ?? 0);
 
                         return $views > 0 ? round(($dismissals / $views) * 100, 1).'%' : '-';
                     }),
@@ -359,35 +355,16 @@ class PopupResource extends Resource
                 TextColumn::make('bounce_rate_30d')
                     ->label('Bounce (30d)')
                     ->getStateUsing(function ($record) {
-                        return Cache::remember(
-                            "popup-list-bounce:{$record->id}",
-                            300,
-                            function () use ($record) {
-                                $m = app(MetricsResolver::class)
-                                    ->forPopup($record->id, now()->subDays(29), now());
+                        $views = (int) ($record->cached_views_30d ?? 0);
+                        $bounces = (int) ($record->cached_bounces_30d ?? 0);
 
-                                return $m['views'] > 0 ? number_format($m['bounce_rate'] * 100, 1).'%' : '-';
-                            }
-                        );
+                        return $views > 0 ? number_format(($bounces / $views) * 100, 1).'%' : '-';
                     }),
-                TextColumn::make('revenue_30d')
+                TextColumn::make('cached_revenue_30d')
                     ->label('Omzet (30d)')
                     ->alignment('right')
-                    ->sortable(false)
-                    ->getStateUsing(function ($record) {
-                        return Cache::remember(
-                            "popup-list-revenue:{$record->id}",
-                            300,
-                            function () use ($record) {
-                                $m = app(MetricsResolver::class)
-                                    ->forPopup($record->id, now()->subDays(29), now());
-
-                                return $m['revenue'] > 0
-                                    ? CurrencyHelper::formatPrice($m['revenue'])
-                                    : '-';
-                            }
-                        );
-                    }),
+                    ->sortable()
+                    ->formatStateUsing(fn ($state) => $state > 0 ? CurrencyHelper::formatPrice((float) $state) : '-'),
             ])
             ->recordActions([
                 EditAction::make()->button(),

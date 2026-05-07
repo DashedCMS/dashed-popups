@@ -2,6 +2,20 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.15.0 - 2026-05-07
+
+### Added
+- **Cached stats-kolommen op `dashed__popups`** voor instant rendering van de PopupResource overzichtspagina, ook bij honderdduizenden views. Migratie `2026_05_07_160000_add_cached_stats_to_popups` voegt 10 kolommen toe: `cached_views_count`, `cached_submits_count`, `cached_dismissals_count`, `cached_in_flow_count` (all-time tellers), `cached_views_30d`, `cached_submits_30d`, `cached_dismissals_30d`, `cached_bounces_30d`, `cached_revenue_30d` (30-daagse stats), en `stats_recalculated_at` (laatste herbereken-moment).
+- Nieuwe Artisan-command `dashed:recalculate-popup-stats` (met optionele `--popup={id}` flag) bouwt de tellers op via 1 enkele aggregate-query op `dashed__popup_views` per popup en de bestaande `MetricsResolver` voor de 30d-cijfers (gebruikt de daily-rollup-tabel zodat er geen full-table-scan ontstaat). Geregistreerd in de scheduler op `hourly()->withoutOverlapping()`.
+
+### Changed
+- `PopupResource` tabel-kolommen lezen nu de cached-kolommen i.p.v. `->counts(...)` subqueries: `cached_views_count`, `cached_submits_count`, `cached_in_flow_count`, `cached_dismissals_count`. De afgeleide `conversie`- en `wegklik %`-kolommen rekenen ook op de cached velden. Sorteerbaar op alle telkolommen.
+- `bounce_rate_30d` en `revenue_30d` kolommen lezen `cached_bounces_30d / cached_views_30d` resp. `cached_revenue_30d` direct - geen `Cache::remember`-roundtrip per record meer en geen MetricsResolver-aanroep tijdens render.
+- `overall_status_30d` kolom blijft voorlopig via `Cache::remember + MetricsResolver` lopen omdat hij naast cijfers ook de `StatusClassifier` aanroept; volgende ronde kan ook deze status worden gecached.
+
+### Migration notes
+Na het uitvoeren van `php artisan migrate` zijn alle kolommen 0 totdat de scheduler hourly draait. Run éénmaal handmatig `php artisan dashed:recalculate-popup-stats` voor directe vulling.
+
 ## v4.14.5 - 2026-05-07
 
 ### Changed
