@@ -133,7 +133,10 @@ class MetricsResolver
 
         $column = $dimension === 'referrer_domain' ? 'referrer' : $dimension;
 
-        $viewRows = PopupView::query()
+        // FORCE INDEX: the optimizer otherwise picks popup_id_foreign and
+        // scans millions of rows. DB::table avoids Eloquent hydration so
+        // PHP doesn't blow the memory limit on large popup_views tables.
+        $viewRows = DB::table(DB::raw('dashed__popup_views FORCE INDEX (popup_views_pid_created_at_idx)'))
             ->where('popup_id', $popupId)
             ->whereBetween('created_at', [$from->copy()->startOfDay(), $to->copy()->endOfDay()])
             ->get(['id', 'submitted_at', $column]);
@@ -285,7 +288,7 @@ class MetricsResolver
 
     private function topRaw(int $popupId, CarbonInterface $from, CarbonInterface $to, string $column): array
     {
-        return DB::table('dashed__popup_views')
+        return DB::table(DB::raw('dashed__popup_views FORCE INDEX (popup_views_pid_first_seen_idx)'))
             ->select([$column, DB::raw('COUNT(*) AS views'), DB::raw('SUM(CASE WHEN submitted_at IS NOT NULL THEN 1 ELSE 0 END) AS submits')])
             ->where('popup_id', $popupId)
             ->whereBetween('first_seen_at', [$from->copy()->startOfDay(), $to->copy()->endOfDay()])
@@ -310,7 +313,7 @@ class MetricsResolver
             ->whereNotNull('discount_code_id')
             ->whereIn('discount_code_id', function ($query) use ($popupId, $from, $to) {
                 $query->select('discount_code_id')
-                    ->from('dashed__popup_views')
+                    ->from(DB::raw('dashed__popup_views FORCE INDEX (popup_views_pid_created_at_idx)'))
                     ->where('popup_id', $popupId)
                     ->whereNotNull('discount_code_id')
                     ->whereBetween('created_at', [$from, $to]);
