@@ -5,6 +5,7 @@ namespace Dashed\DashedPopups\Filament\Widgets;
 use Dashed\DashedPopups\Models\Popup;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Illuminate\Support\Facades\Cache;
 use Dashed\DashedPopups\Analytics\MetricsResolver;
 
 class PopupFunnelWidget extends StatsOverviewWidget
@@ -19,10 +20,17 @@ class PopupFunnelWidget extends StatsOverviewWidget
             return [];
         }
 
-        $metrics = app(MetricsResolver::class)->forPopup(
-            $this->record->id,
-            now()->subDays(30),
-            now(),
+        // forPopup() runs a handful of queries against the (potentially huge)
+        // dashed__popup_views table. Caching for 5 minutes is enough to keep
+        // the popup edit page responsive — the same TTL the list page uses.
+        $metrics = Cache::remember(
+            "popup-funnel:{$this->record->id}",
+            300,
+            fn () => app(MetricsResolver::class)->forPopup(
+                $this->record->id,
+                now()->subDays(30),
+                now(),
+            ),
         );
 
         $views = (int) ($metrics['views'] ?? 0);
