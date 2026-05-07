@@ -61,6 +61,16 @@ class Popup extends Component
             return;
         }
 
+        // Maximaal 1 popup per sessie. Zodra een andere popup deze sessie
+        // is getoond markeren we dat (zie verderop), en blokkeren we hier
+        // alle volgende popups. Voorkomt dat een tweede popup alsnog opent
+        // wanneer er om welke reden dan ook meerdere actieve popups in de
+        // DB staan of meerdere Livewire-instances naast elkaar mounten.
+        $alreadyShownInSession = (int) session('dashed_popups.shown_id', 0);
+        if ($alreadyShownInSession && $alreadyShownInSession !== (int) $this->popup->id) {
+            return;
+        }
+
         $user = Auth::user();
         $identityEmail = $this->resolveIdentityEmail($user);
 
@@ -136,6 +146,8 @@ class Popup extends Component
             $this->popupView->seen_count++;
             $this->popupView->last_seen_at = now();
             $this->popupView->save();
+
+            session(['dashed_popups.shown_id' => (int) $this->popup->id]);
         }
     }
 

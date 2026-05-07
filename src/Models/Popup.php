@@ -53,7 +53,11 @@ class Popup extends Model
         });
 
         static::saved(function ($popup) {
-            if ($popup->active && $popup->wasChanged('active')) {
+            // Bewaar invariant "maximaal 1 actieve popup tegelijk" idempotent:
+            // ook wanneer 'active' niet via deze save wijzigde maar er via
+            // bulk-update / seeder / direct-DB twee actieve popups zijn ontstaan
+            // ruimt iedere save dat alsnog op.
+            if ($popup->active) {
                 static::where('id', '!=', $popup->id)
                     ->where('active', true)
                     ->update(['active' => false]);

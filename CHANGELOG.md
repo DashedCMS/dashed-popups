@@ -2,6 +2,12 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.15.3 - 2026-05-07
+
+### Fixed
+- "Maximaal 1 actieve popup tegelijk"-invariant op de `Popup` `saved` boot hook is idempotent gemaakt: voorheen werd alleen gedeactiveerd wanneer `wasChanged('active')` true was, waardoor bulk-update / seeder / direct-DB twee actieve popups kon laten ontstaan. Nu wordt iedere save van een actieve popup gevolgd door deactivatie van overige actieve popups.
+- `Livewire\Popup::mount()` blokkeert nu een tweede popup binnen dezelfde sessie. Zodra een popup is getoond zetten we `session('dashed_popups.shown_id')`; volgende popups die in dezelfde sessie willen mounten zien deze marker en stoppen vóór de view-record creatie.
+
 ## v4.15.0 - 2026-05-07
 
 ### Added
