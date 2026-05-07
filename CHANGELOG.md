@@ -2,6 +2,11 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.14.0 - 2026-05-07
+
+### Added
+- **Popup-sectie in admin samenvatting-mails**. Nieuwe `PopupSummaryContributor` (key `popups`, default frequency `weekly`, beschikbaar als `daily`, `weekly` en `monthly`) implementeert het `SummaryContributorInterface` uit `dashed-core` v4.5.0 en wordt geregistreerd via `cms()->builder('summaryContributors', ...)` in de `DashedPopupsServiceProvider`. Bouwt een `SummarySection` met een `stats`-block (totaal views, totaal submits, submit-rate over de periode op `dashed__popup_views`) plus een `table`-block met de top 5 popups op aantal submits, kolommen Popup, Views, Submits, Submit %, Order conversie en Omzet. Order-conversie telt unieke `matched_order_id` per popup, omzet sommeert `Order::total` van die orders. Returnt `null` als er in de periode geen views zijn zodat lege secties worden overgeslagen. Popups zonder submits worden ook overgeslagen in de top 5 zodat de tabel altijd betekenisvolle rijen toont.
+
 ## v4.13.10 - 2026-05-05
 
 ### Fixed

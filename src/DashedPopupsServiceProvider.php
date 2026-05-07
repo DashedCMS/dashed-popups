@@ -52,6 +52,11 @@ class DashedPopupsServiceProvider extends PackageServiceProvider
             new DashedPopupsPlugin(),
         ]);
 
+        cms()->builder('summaryContributors', array_merge(
+            cms()->builder('summaryContributors') ?? [],
+            [\Dashed\DashedPopups\Services\Summary\PopupSummaryContributor::class],
+        ));
+
         if (class_exists(\Dashed\DashedEcommerceCore\Models\Order::class)) {
             \Dashed\DashedEcommerceCore\Models\Order::observe(
                 \Dashed\DashedPopups\Observers\OrderPopupMatchObserver::class
