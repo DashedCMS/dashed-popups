@@ -3,9 +3,9 @@
 namespace Dashed\DashedPopups\Filament\Widgets;
 
 use Dashed\DashedPopups\Models\Popup;
+use Illuminate\Support\Facades\Cache;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use Illuminate\Support\Facades\Cache;
 use Dashed\DashedPopups\Analytics\MetricsResolver;
 
 class PopupFunnelWidget extends StatsOverviewWidget

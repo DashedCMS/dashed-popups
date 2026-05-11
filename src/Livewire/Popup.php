@@ -275,6 +275,10 @@ class Popup extends Component
 
         session(['popup_identity_email' => strtolower(trim($email))]);
 
+        // Globale captura zodat alle blades / formulieren in dezelfde
+        // sessie het adres kunnen voorvullen of personaliseren.
+        \Dashed\DashedCore\Classes\EmailCapture::capture($email, 'popup');
+
         dispatch(new ScheduleAbandonedCartEmailsForCartJob($cart->id));
 
         if ($this->popup->notify_on_conversion && $wasFirstSubmit) {

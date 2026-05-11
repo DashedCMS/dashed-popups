@@ -2,6 +2,11 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.16.0 - 2026-05-11
+
+### Added
+- **Popup-submit voedt globale e-mail-captura.** `Livewire\Popup` roept `Dashed\DashedCore\Classes\EmailCapture::capture()` aan zodra een bezoeker zijn adres in de popup invult, met `source='popup'`. Cross-page beschikbaar via `$capturedEmail` / `capturedEmail()` (vereist dashed-core ≥ v4.7.0). Bestaande `session('popup_identity_email')`-flow blijft ongewijzigd.
+
 ## v4.15.3 - 2026-05-07
 
 ### Fixed
