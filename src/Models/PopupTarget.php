@@ -17,6 +17,7 @@ class PopupTarget extends Model
     public const MATCH_URL_PATTERN = 'url_pattern';
     public const MATCH_ALL_OF_TYPE = 'all_of_type';
     public const MATCH_SPECIFIC_MODEL = 'specific_model';
+    public const MATCH_RECOMMENDATION_STRATEGY = 'recommendation_strategy';
 
     protected $fillable = [
         'popup_id',
@@ -25,6 +26,7 @@ class PopupTarget extends Model
         'pattern',
         'targetable_type',
         'targetable_id',
+        'recommendation_strategy_slug',
     ];
 
     protected $casts = [
