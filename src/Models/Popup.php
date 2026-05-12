@@ -3,6 +3,7 @@
 namespace Dashed\DashedPopups\Models;
 
 use Illuminate\Http\Request;
+use Spatie\Activitylog\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Translatable\HasTranslations;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,6 +12,7 @@ use Dashed\DashedPopups\Services\PopupTargetingService;
 
 class Popup extends Model
 {
+    use LogsActivity;
     use HasTranslations;
 
     protected $table = 'dashed__popups';
@@ -135,5 +137,27 @@ class Popup extends Model
         }
 
         return PopupFollowUpFlow::default();
+    }
+
+    /**
+     * Activity-log integration: emits a row per edit so the Filament
+     * LastEditedColumn can surface "who changed this when".
+     */
+    public function getActivitylogOptions(): \Spatie\Activitylog\LogOptions
+    {
+        return \Spatie\Activitylog\LogOptions::defaults()
+            ->logOnly(['*'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
+
+    /**
+     * Latest activity-log entry. Eager-load via
+     * `with('latestActivity.causer')` to avoid N+1 on list pages.
+     */
+    public function latestActivity(): \Illuminate\Database\Eloquent\Relations\MorphOne
+    {
+        return $this->morphOne(\Spatie\Activitylog\Models\Activity::class, 'subject')
+            ->latestOfMany('created_at');
     }
 }
