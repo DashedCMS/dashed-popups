@@ -20,6 +20,7 @@ class PopupFollowUpMail extends Mailable
 {
     use Queueable;
     use SerializesModels;
+    use \Dashed\DashedEcommerceCore\Mail\Concerns\HasRecommendations;
 
     public ?string $previewDiscountCode = null;
 
@@ -183,6 +184,18 @@ class PopupFollowUpMail extends Mailable
 
             case 'divider':
                 return view('dashed-core::emails.blocks.divider')->render();
+
+            case 'recommendation':
+                $products = $this->recommendationsFor(
+                    \Dashed\DashedEcommerceCore\Services\Recommendations\RecommendationPlacement::EmailPopupFollowUp,
+                    [],
+                    4,
+                );
+                return view('dashed-ecommerce-core::email.recommendations', [
+                    'products' => $products,
+                    'placement' => 'email_popup_follow_up',
+                    'heading' => (string) ($data['heading'] ?? 'Misschien vind je dit ook leuk'),
+                ])->render();
 
             case 'usp':
                 $items = collect(explode("\n", (string) ($data['items'] ?? '')))
