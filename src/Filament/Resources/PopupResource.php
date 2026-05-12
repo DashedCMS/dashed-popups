@@ -37,6 +37,8 @@ use Dashed\DashedPopups\Filament\Resources\PopupResource\RelationManagers\Conver
 
 class PopupResource extends Resource
 {
+    use \Dashed\DashedCore\Filament\Concerns\HasLastEditedColumn;
+
     protected static ?string $model = Popup::class;
 
     protected static ?string $recordTitleAttribute = 'name';
