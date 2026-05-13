@@ -376,7 +376,16 @@ class PopupResource extends Resource
             ])
             ->toolbarActions(ToolbarActions::getActions())
             ->filters([
-                //
+                \Filament\Tables\Filters\TernaryFilter::make('is_active')
+                    ->label('Actief')
+                    ->placeholder('Alle popups')
+                    ->trueLabel('Alleen actieve')
+                    ->falseLabel('Alleen inactieve')
+                    ->queries(
+                        true: fn (\Illuminate\Database\Eloquent\Builder $q) => $q->where('active', true),
+                        false: fn (\Illuminate\Database\Eloquent\Builder $q) => $q->where('active', false),
+                        blank: fn (\Illuminate\Database\Eloquent\Builder $q) => $q,
+                    ),
             ]);
     }
 
