@@ -71,4 +71,52 @@ class PopupVariant extends Model
     {
         return (int) ($this->discount_valid_days_override ?? $this->popup->discount_valid_days ?? 14);
     }
+
+    /**
+     * Inspect the parent popup's targets for a MATCH_RECOMMENDATION_STRATEGY
+     * entry and, if present, ask the RecommendationService for products.
+     * Returns an empty collection when the popup has no recommendation
+     * target (or when the recommendation engine isn't installed yet).
+     *
+     * Consumers (popup-rendering controllers/components) read this as
+     * `$variant->recommendedProducts` to surface a product strip inside
+     * the popup body.
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function getRecommendedProductsAttribute()
+    {
+        if (! class_exists(\Dashed\DashedEcommerceCore\Services\Recommendations\RecommendationService::class)) {
+            return collect();
+        }
+
+        $popup = $this->popup;
+        if (! $popup) {
+            return collect();
+        }
+
+        $hasTarget = false;
+        foreach ($popup->targets ?? [] as $target) {
+            if (($target->match_type ?? null) === PopupTarget::MATCH_RECOMMENDATION_STRATEGY) {
+                $hasTarget = true;
+                break;
+            }
+        }
+
+        if (! $hasTarget) {
+            return collect();
+        }
+
+        try {
+            $context = \Dashed\DashedEcommerceCore\Services\Recommendations\Context\RecommendationContext::for(
+                \Dashed\DashedEcommerceCore\Services\Recommendations\RecommendationPlacement::Popup,
+            )->withLimit(4)->build();
+
+            return app(\Dashed\DashedEcommerceCore\Services\Recommendations\RecommendationService::class)
+                ->for($context)
+                ->products;
+        } catch (\Throwable) {
+            return collect();
+        }
+    }
 }
