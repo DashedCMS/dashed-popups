@@ -16,6 +16,7 @@ use Dashed\DashedPopups\Filament\Widgets\PopupFunnelWidget;
 use Dashed\DashedPopups\Livewire\Admin\PopupAnalyticsPanel;
 use Dashed\DashedPopups\Commands\RecalculatePopupStatsCommand;
 use Dashed\DashedPopups\Commands\BackfillPopupOrderMatchesCommand;
+use Dashed\DashedPopups\Filament\Widgets\PopupActiveStat;
 use Dashed\DashedPopups\Filament\Widgets\PopupPerformanceOverview;
 use Dashed\DashedPopups\Listeners\CancelPopupFollowUpsOnPaidOrder;
 
@@ -30,6 +31,7 @@ class DashedPopupsServiceProvider extends PackageServiceProvider
         Livewire::component('dashed-popups.popup', Popup::class);
         Livewire::component('dashed-popups.admin.popup-analytics-panel', PopupAnalyticsPanel::class);
         Livewire::component('dashed.dashed-popups.filament.widgets.popup-performance-overview', PopupPerformanceOverview::class);
+        Livewire::component('dashed.dashed-popups.filament.widgets.popup-active-stat', PopupActiveStat::class);
         Livewire::component('dashed.dashed-popups.filament.widgets.popup-funnel-widget', PopupFunnelWidget::class);
 
         if ($this->app->runningInConsole()) {
