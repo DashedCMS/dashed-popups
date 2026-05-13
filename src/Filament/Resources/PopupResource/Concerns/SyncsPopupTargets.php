@@ -4,6 +4,7 @@ namespace Dashed\DashedPopups\Filament\Resources\PopupResource\Concerns;
 
 use Illuminate\Support\Facades\DB;
 use Dashed\DashedPopups\Models\Popup;
+use Dashed\DashedPopups\Models\PopupTarget;
 
 trait SyncsPopupTargets
 {
@@ -65,6 +66,20 @@ trait SyncsPopupTargets
                         }
                     }
                 }
+            }
+
+            // Recommendation strategy (at most one row per popup)
+            $popup->targets()
+                ->where('match_type', PopupTarget::MATCH_RECOMMENDATION_STRATEGY)
+                ->delete();
+
+            $strategySlug = $data['recommendation_strategy_slug'] ?? null;
+            if (is_string($strategySlug) && $strategySlug !== '') {
+                $popup->targets()->create([
+                    'rule_type' => PopupTarget::RULE_INCLUDE,
+                    'match_type' => PopupTarget::MATCH_RECOMMENDATION_STRATEGY,
+                    'recommendation_strategy_slug' => $strategySlug,
+                ]);
             }
         });
     }

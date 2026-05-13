@@ -279,6 +279,33 @@ class PopupResource extends Resource
                         ->columnSpanFull(),
                 ])
                 ->columnSpanFull(),
+
+            Section::make('Aanbevelingen')
+                ->description('Toon AI-aanbevolen producten in deze popup.')
+                ->columnSpanFull()
+                ->schema([
+                    Select::make('recommendation_strategy_slug')
+                        ->label('Aanbevelingen-strategie')
+                        ->helperText('Laat leeg om geen aanbevelingen te tonen.')
+                        ->options(function () {
+                            if (! class_exists(\Dashed\DashedEcommerceCore\Services\Recommendations\RecommendationRegistry::class)) {
+                                return [];
+                            }
+                            $entries = app(\Dashed\DashedEcommerceCore\Services\Recommendations\RecommendationRegistry::class)->all();
+
+                            return collect($entries)
+                                ->mapWithKeys(function ($entry) {
+                                    $slug = method_exists($entry, 'key') ? $entry->key() : (string) $entry;
+
+                                    return [$slug => str_replace('_', ' ', ucfirst($slug))];
+                                })
+                                ->all();
+                        })
+                        ->nullable()
+                        ->dehydrated(true)
+                        ->placeholder('Geen aanbevelingen')
+                        ->columnSpanFull(),
+                ]),
         ]);
     }
 

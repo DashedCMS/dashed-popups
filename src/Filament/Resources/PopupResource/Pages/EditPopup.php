@@ -71,6 +71,9 @@ class EditPopup extends EditRecord
             }
         }
 
+        $recommendationTarget = $targets->firstWhere('match_type', \Dashed\DashedPopups\Models\PopupTarget::MATCH_RECOMMENDATION_STRATEGY);
+        $data['recommendation_strategy_slug'] = $recommendationTarget?->recommendation_strategy_slug;
+
         return $data;
     }
 
