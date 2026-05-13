@@ -367,7 +367,9 @@ class PopupResource extends Resource
                     ->alignment('right')
                     ->sortable()
                     ->formatStateUsing(fn ($state) => $state > 0 ? CurrencyHelper::formatPrice((float) $state) : '-'),
+                static::lastEditedColumn(),
             ])
+            ->modifyQueryUsing(fn ($query) => static::modifyTableQueryForLastEdited($query))
             ->recordActions([
                 EditAction::make()->button(),
                 DeleteAction::make(),
