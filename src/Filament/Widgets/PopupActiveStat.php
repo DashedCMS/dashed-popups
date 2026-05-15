@@ -2,10 +2,10 @@
 
 namespace Dashed\DashedPopups\Filament\Widgets;
 
+use Dashed\DashedPopups\Models\Popup;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Dashed\DashedCore\Filament\Support\ResourceFilterUrl;
-use Dashed\DashedPopups\Models\Popup;
 use Dashed\DashedPopups\Filament\Resources\PopupResource;
 
 /**

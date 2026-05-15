@@ -3,9 +3,9 @@
 namespace Dashed\DashedPopups\Models;
 
 use Illuminate\Http\Request;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Translatable\HasTranslations;
+use Spatie\Activitylog\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Dashed\DashedPopups\Services\PopupTargetingService;

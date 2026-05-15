@@ -11,8 +11,8 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
 use Dashed\DashedPopups\Filament\Resources\PopupResource;
-use Dashed\DashedPopups\PopupTemplates\PopupTemplateRegistry;
 use Dashed\DashedPopups\Filament\Widgets\PopupActiveStat;
+use Dashed\DashedPopups\PopupTemplates\PopupTemplateRegistry;
 use Dashed\DashedPopups\Filament\Widgets\PopupPerformanceOverview;
 
 class ListPopups extends ListRecords

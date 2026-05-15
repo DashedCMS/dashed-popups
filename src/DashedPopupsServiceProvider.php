@@ -12,11 +12,11 @@ use Dashed\DashedPopups\Policies\PopupPolicy;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Dashed\DashedPopups\Commands\RollupPopupStatsCommand;
 use Dashed\DashedPopups\Filament\Resources\PopupResource;
+use Dashed\DashedPopups\Filament\Widgets\PopupActiveStat;
 use Dashed\DashedPopups\Filament\Widgets\PopupFunnelWidget;
 use Dashed\DashedPopups\Livewire\Admin\PopupAnalyticsPanel;
 use Dashed\DashedPopups\Commands\RecalculatePopupStatsCommand;
 use Dashed\DashedPopups\Commands\BackfillPopupOrderMatchesCommand;
-use Dashed\DashedPopups\Filament\Widgets\PopupActiveStat;
 use Dashed\DashedPopups\Filament\Widgets\PopupPerformanceOverview;
 use Dashed\DashedPopups\Listeners\CancelPopupFollowUpsOnPaidOrder;
 

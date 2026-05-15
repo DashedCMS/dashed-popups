@@ -191,6 +191,7 @@ class PopupFollowUpMail extends Mailable
                     [],
                     4,
                 );
+
                 return view('dashed-ecommerce-core::email.recommendations', [
                     'products' => $products,
                     'placement' => 'email_popup_follow_up',

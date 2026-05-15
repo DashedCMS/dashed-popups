@@ -99,6 +99,7 @@ class PopupVariant extends Model
         foreach ($popup->targets ?? [] as $target) {
             if (($target->match_type ?? null) === PopupTarget::MATCH_RECOMMENDATION_STRATEGY) {
                 $hasTarget = true;
+
                 break;
             }
         }
