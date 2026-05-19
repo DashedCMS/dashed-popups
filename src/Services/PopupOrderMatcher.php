@@ -76,9 +76,22 @@ class PopupOrderMatcher
             return 0;
         }
 
+        // Een match kan alleen bestaan via een gedeelde discount_code_id of
+        // e-mail. Zonder een van beide is de OR-where leeg en degenereert de
+        // query op dashed__popup_views (miljoenen rijen, geen bruikbare index
+        // voor `submitted_at` + `matched_order_id IS NULL`) tot een scan van
+        // het hele 30d-window. Voor anonieme POS-bestellingen (geen e-mail,
+        // geen discount) is dat ~2-3s per afrekening — bail vroeg.
+        if (empty($order->email) && empty($order->discount_code_id)) {
+            return 0;
+        }
+
         $windowStart = $order->created_at->copy()->subDays(30);
 
-        $candidates = PopupView::query()
+        // Eén bulk-UPDATE i.p.v. SELECT + per-rij ->update(): minder queries en
+        // schrijft alleen rijen die nog matched_order_id IS NULL hebben dankzij
+        // de bestaande WHERE-clause.
+        return PopupView::query()
             ->whereNotNull('submitted_at')
             ->whereNull('matched_order_id')
             ->where('submitted_at', '>=', $windowStart)
@@ -91,15 +104,7 @@ class PopupOrderMatcher
                     $q->orWhere('email', $order->email);
                 }
             })
-            ->get();
-
-        $count = 0;
-        foreach ($candidates as $view) {
-            $view->update(['matched_order_id' => $order->id]);
-            $count++;
-        }
-
-        return $count;
+            ->update(['matched_order_id' => $order->id]);
     }
 
     protected function ecommerceAvailable(): bool

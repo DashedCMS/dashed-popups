@@ -2,14 +2,10 @@
 
 namespace Dashed\DashedPopups\Observers;
 
-use Dashed\DashedPopups\Services\PopupOrderMatcher;
+use Dashed\DashedPopups\Jobs\MatchPopupViewsToOrderJob;
 
 class OrderPopupMatchObserver
 {
-    public function __construct(protected PopupOrderMatcher $matcher)
-    {
-    }
-
     public function updated($order): void
     {
         if (! $order->wasChanged('status')) {
@@ -19,7 +15,7 @@ class OrderPopupMatchObserver
             return;
         }
 
-        $this->matcher->matchForOrder($order);
+        MatchPopupViewsToOrderJob::dispatch($order->id);
     }
 
     public function created($order): void
@@ -28,6 +24,6 @@ class OrderPopupMatchObserver
             return;
         }
 
-        $this->matcher->matchForOrder($order);
+        MatchPopupViewsToOrderJob::dispatch($order->id);
     }
 }
