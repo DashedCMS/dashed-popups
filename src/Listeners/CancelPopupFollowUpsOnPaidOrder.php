@@ -2,6 +2,9 @@
 
 namespace Dashed\DashedPopups\Listeners;
 
+use Illuminate\Bus\Queueable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Dashed\DashedPopups\Models\PopupView;
 
 /**
@@ -13,8 +16,11 @@ use Dashed\DashedPopups\Models\PopupView;
  * Cancel scope is by email match only. A user with the same id but a
  * different email will NOT have their flow cancelled.
  */
-class CancelPopupFollowUpsOnPaidOrder
+class CancelPopupFollowUpsOnPaidOrder implements ShouldQueue
 {
+    use InteractsWithQueue;
+    use Queueable;
+
     public function handle(object $event): int
     {
         $order = $event->order ?? null;
