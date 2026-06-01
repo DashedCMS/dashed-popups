@@ -11,6 +11,10 @@ return new class () extends Migration {
 
     public function up(): void
     {
+        if (DB::connection()->getDriverName() !== 'mysql') {
+            return;
+        }
+
         if (! Schema::hasTable($this->table)) {
             return;
         }
@@ -32,6 +36,10 @@ return new class () extends Migration {
 
     public function down(): void
     {
+        if (DB::connection()->getDriverName() !== 'mysql') {
+            return;
+        }
+
         if (! Schema::hasTable($this->table)) {
             return;
         }
