@@ -6,13 +6,13 @@ use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Translatable\HasTranslations;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Dashed\DashedEcommerceCore\Models\Product;
+use Dashed\DashedEcommerceCore\Models\DiscountCode;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Dashed\DashedPopups\Services\PopupTargetingService;
-use Dashed\DashedEcommerceCore\Models\DiscountCode;
-use Dashed\DashedEcommerceCore\Models\Product;
 use Dashed\DashedEcommerceCore\Models\ProductCategory;
+use Dashed\DashedPopups\Services\PopupTargetingService;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Popup extends Model
 {
