@@ -178,18 +178,21 @@ class Popup extends Model
         return $this->belongsToMany(ProductCategory::class, 'dashed__popup_discount_category', 'popup_id', 'product_category_id');
     }
 
-    public function discountCodeAttributes(?float $overridePercentage, int $validDays): array
+    public function discountCodeAttributes(?float $overridePercentage): array
     {
         $type = $this->discount_type ?: 'percentage';
+        $requirement = $this->minimal_requirements ?: null;
 
         $attributes = [
             'type' => $type,
             'use_stock' => true,
             'stock' => 1,
             'limit_use_per_customer' => true,
-            'minimal_requirements' => $this->minimal_requirements ?: null,
-            'minimum_amount' => $this->minimum_amount,
-            'minimum_products_count' => $this->minimum_products_count,
+            'minimal_requirements' => $requirement,
+            // Only carry the threshold that matches the chosen requirement;
+            // keep the rest null so the stored data stays clean.
+            'minimum_amount' => $requirement === 'amount' ? $this->minimum_amount : null,
+            'minimum_products_count' => $requirement === 'products' ? $this->minimum_products_count : null,
             'valid_for' => $this->valid_for ?: null,
         ];
 
@@ -204,7 +207,7 @@ class Popup extends Model
 
     public function createDiscountCodeFor(string $code, float $discountPercentage, int $validDays, array $siteIds): DiscountCode
     {
-        $attributes = $this->discountCodeAttributes($discountPercentage, $validDays);
+        $attributes = $this->discountCodeAttributes($discountPercentage);
 
         $label = ($this->discount_type ?: 'percentage') === 'amount'
             ? 'Popup €' . (float) $this->discount_amount . ' korting'
