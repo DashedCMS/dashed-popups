@@ -8,7 +8,11 @@ use Spatie\Translatable\HasTranslations;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Dashed\DashedPopups\Services\PopupTargetingService;
+use Dashed\DashedEcommerceCore\Models\DiscountCode;
+use Dashed\DashedEcommerceCore\Models\Product;
+use Dashed\DashedEcommerceCore\Models\ProductCategory;
 
 class Popup extends Model
 {
@@ -46,6 +50,9 @@ class Popup extends Model
         'cached_bounces_30d' => 'integer',
         'cached_revenue_30d' => 'decimal:2',
         'stats_recalculated_at' => 'datetime',
+        'discount_amount' => 'decimal:2',
+        'minimum_amount' => 'decimal:2',
+        'minimum_products_count' => 'integer',
     ];
 
     protected static function booted(): void
@@ -159,5 +166,64 @@ class Popup extends Model
     {
         return $this->morphOne(\Spatie\Activitylog\Models\Activity::class, 'subject')
             ->latestOfMany('created_at');
+    }
+
+    public function discountProducts(): BelongsToMany
+    {
+        return $this->belongsToMany(Product::class, 'dashed__popup_discount_product', 'popup_id', 'product_id');
+    }
+
+    public function discountCategories(): BelongsToMany
+    {
+        return $this->belongsToMany(ProductCategory::class, 'dashed__popup_discount_category', 'popup_id', 'product_category_id');
+    }
+
+    public function discountCodeAttributes(?float $overridePercentage, int $validDays): array
+    {
+        $type = $this->discount_type ?: 'percentage';
+
+        $attributes = [
+            'type' => $type,
+            'use_stock' => true,
+            'stock' => 1,
+            'limit_use_per_customer' => true,
+            'minimal_requirements' => $this->minimal_requirements ?: null,
+            'minimum_amount' => $this->minimum_amount,
+            'minimum_products_count' => $this->minimum_products_count,
+            'valid_for' => $this->valid_for ?: null,
+        ];
+
+        if ($type === 'amount') {
+            $attributes['discount_amount'] = $this->discount_amount;
+        } else {
+            $attributes['discount_percentage'] = $overridePercentage ?? (float) $this->discount_percentage;
+        }
+
+        return $attributes;
+    }
+
+    public function createDiscountCodeFor(string $code, float $discountPercentage, int $validDays, array $siteIds): DiscountCode
+    {
+        $attributes = $this->discountCodeAttributes($discountPercentage, $validDays);
+
+        $label = ($this->discount_type ?: 'percentage') === 'amount'
+            ? 'Popup €' . (float) $this->discount_amount . ' korting'
+            : 'Popup ' . (float) ($attributes['discount_percentage'] ?? 0) . '% korting';
+
+        $discountCode = DiscountCode::create(array_merge($attributes, [
+            'site_ids' => $siteIds,
+            'name' => $label,
+            'code' => $code,
+            'start_date' => now(),
+            'end_date' => now()->addDays($validDays),
+        ]));
+
+        if (($this->valid_for ?: null) === 'products') {
+            $discountCode->products()->sync($this->discountProducts()->pluck('dashed__products.id')->all());
+        } elseif (($this->valid_for ?: null) === 'categories') {
+            $discountCode->productCategories()->sync($this->discountCategories()->pluck('dashed__product_categories.id')->all());
+        }
+
+        return $discountCode;
     }
 }
