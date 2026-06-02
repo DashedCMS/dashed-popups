@@ -194,7 +194,7 @@ class PopupResource extends Resource
                         ->multiple()
                         ->searchable()
                         ->dehydrated(false)
-                        ->options(fn () => \Dashed\DashedEcommerceCore\Models\ProductCategory::query()->pluck('name', 'id')->toArray())
+                        ->options(fn () => \Dashed\DashedEcommerceCore\Models\ProductCategory::all()->pluck('nameWithParents', 'id')->toArray())
                         ->required(fn (Get $get) => $get('valid_for') === 'categories')
                         ->visible(fn (Get $get) => $get('valid_for') === 'categories'),
                 ])
