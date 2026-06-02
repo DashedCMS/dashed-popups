@@ -22,7 +22,7 @@ class CreatePopup extends CreateRecord
         ];
     }
 
-    protected function mutatePopupDataBeforeCreate(array $data): array
+    protected function mutateFormDataBeforeCreate(array $data): array
     {
         unset($data['mustHaveSomethingDefined']);
         foreach ($data as $key => $value) {
@@ -33,11 +33,19 @@ class CreatePopup extends CreateRecord
             }
         }
 
+        foreach (['minimal_requirements', 'valid_for'] as $noneable) {
+            if (($data[$noneable] ?? null) === 'none' || ($data[$noneable] ?? null) === 'all') {
+                $data[$noneable] = null;
+            }
+        }
+
         return $data;
     }
 
     protected function afterCreate(): void
     {
         $this->syncPopupTargets($this->record, $this->data);
+        $this->record->discountProducts()->sync($this->data['discount_product_ids'] ?? []);
+        $this->record->discountCategories()->sync($this->data['discount_category_ids'] ?? []);
     }
 }

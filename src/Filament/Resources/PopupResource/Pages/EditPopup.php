@@ -74,12 +74,30 @@ class EditPopup extends EditRecord
         $recommendationTarget = $targets->firstWhere('match_type', \Dashed\DashedPopups\Models\PopupTarget::MATCH_RECOMMENDATION_STRATEGY);
         $data['recommendation_strategy_slug'] = $recommendationTarget?->recommendation_strategy_slug;
 
+        $data['discount_product_ids'] = $this->record->discountProducts()->pluck('dashed__products.id')->all();
+        $data['discount_category_ids'] = $this->record->discountCategories()->pluck('dashed__product_categories.id')->all();
+        $data['minimal_requirements'] = $data['minimal_requirements'] ?? 'none';
+        $data['valid_for'] = $data['valid_for'] ?? 'all';
+
+        return $data;
+    }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        foreach (['minimal_requirements', 'valid_for'] as $noneable) {
+            if (($data[$noneable] ?? null) === 'none' || ($data[$noneable] ?? null) === 'all') {
+                $data[$noneable] = null;
+            }
+        }
+
         return $data;
     }
 
     protected function afterSave(): void
     {
         $this->syncPopupTargets($this->record, $this->data);
+        $this->record->discountProducts()->sync($this->data['discount_product_ids'] ?? []);
+        $this->record->discountCategories()->sync($this->data['discount_category_ids'] ?? []);
     }
 
     protected function getActions(): array

@@ -116,6 +116,15 @@ class PopupResource extends Resource
             Section::make('Korting')
                 ->visible(fn (Get $get) => $get('type') === 'discount')
                 ->schema([
+                    Radio::make('discount_type')
+                        ->label('Type korting')
+                        ->options([
+                            'percentage' => 'Percentage',
+                            'amount' => 'Vast bedrag',
+                        ])
+                        ->default('percentage')
+                        ->reactive()
+                        ->required(),
                     TextInput::make('discount_percentage')
                         ->label('Kortingspercentage')
                         ->helperText('Decimalen toegestaan (bijv. 12.5)')
@@ -124,7 +133,15 @@ class PopupResource extends Resource
                         ->minValue(0.01)
                         ->maxValue(99.99)
                         ->default(10)
-                        ->required(),
+                        ->required(fn (Get $get) => ($get('discount_type') ?? 'percentage') === 'percentage')
+                        ->visible(fn (Get $get) => ($get('discount_type') ?? 'percentage') === 'percentage'),
+                    TextInput::make('discount_amount')
+                        ->label('Kortingsbedrag')
+                        ->prefix('€')
+                        ->numeric()
+                        ->minValue(0.01)
+                        ->required(fn (Get $get) => $get('discount_type') === 'amount')
+                        ->visible(fn (Get $get) => $get('discount_type') === 'amount'),
                     TextInput::make('discount_valid_days')
                         ->label('Geldig voor (dagen)')
                         ->numeric()
@@ -133,6 +150,53 @@ class PopupResource extends Resource
                     Toggle::make('auto_apply_discount')
                         ->label('Automatisch toepassen op winkelmand')
                         ->default(true),
+                    Radio::make('minimal_requirements')
+                        ->label('Minimale eisen')
+                        ->options([
+                            'none' => 'Geen',
+                            'products' => 'Minimaal aantal producten',
+                            'amount' => 'Minimaal aankoopbedrag',
+                        ])
+                        ->default('none')
+                        ->reactive(),
+                    TextInput::make('minimum_products_count')
+                        ->label('Minimum aantal producten')
+                        ->numeric()
+                        ->minValue(1)
+                        ->required(fn (Get $get) => $get('minimal_requirements') === 'products')
+                        ->visible(fn (Get $get) => $get('minimal_requirements') === 'products'),
+                    TextInput::make('minimum_amount')
+                        ->label('Minimum aankoopbedrag')
+                        ->prefix('€')
+                        ->numeric()
+                        ->minValue(1)
+                        ->required(fn (Get $get) => $get('minimal_requirements') === 'amount')
+                        ->visible(fn (Get $get) => $get('minimal_requirements') === 'amount'),
+                    Radio::make('valid_for')
+                        ->label('Van toepassing op')
+                        ->options([
+                            'all' => 'Alle producten',
+                            'products' => 'Specifieke producten',
+                            'categories' => 'Specifieke categorieën',
+                        ])
+                        ->default('all')
+                        ->reactive(),
+                    Select::make('discount_product_ids')
+                        ->label('Producten')
+                        ->multiple()
+                        ->searchable()
+                        ->dehydrated(false)
+                        ->options(fn () => \Dashed\DashedEcommerceCore\Models\Product::query()->pluck('name', 'id')->toArray())
+                        ->required(fn (Get $get) => $get('valid_for') === 'products')
+                        ->visible(fn (Get $get) => $get('valid_for') === 'products'),
+                    Select::make('discount_category_ids')
+                        ->label('Categorieën')
+                        ->multiple()
+                        ->searchable()
+                        ->dehydrated(false)
+                        ->options(fn () => \Dashed\DashedEcommerceCore\Models\ProductCategory::query()->pluck('name', 'id')->toArray())
+                        ->required(fn (Get $get) => $get('valid_for') === 'categories')
+                        ->visible(fn (Get $get) => $get('valid_for') === 'categories'),
                 ])
                 ->columns(3)
                 ->columnSpanFull(),
