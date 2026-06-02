@@ -302,7 +302,12 @@ class PopupResource extends Resource
                                 ->all();
                         })
                         ->nullable()
-                        ->dehydrated(true)
+                        // Virtual field: persisted to dashed__popup_targets via
+                        // syncPopupTargets(), NOT a column on dashed__popups.
+                        // Must stay dehydrated(false) like the other target fields,
+                        // otherwise Filament writes it to the popups row and the
+                        // save fails with "Unknown column recommendation_strategy_slug".
+                        ->dehydrated(false)
                         ->placeholder('Geen aanbevelingen')
                         ->columnSpanFull(),
                 ]),
