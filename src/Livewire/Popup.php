@@ -14,7 +14,6 @@ use Dashed\DashedPopups\Models\PopupVariant;
 use Dashed\DashedPopups\Analytics\DeviceDetector;
 use Dashed\DashedPopups\Mail\PopupConversionMail;
 use Dashed\DashedCore\Notifications\AdminNotifier;
-use Dashed\DashedEcommerceCore\Models\DiscountCode;
 use Dashed\DashedPopups\Models\Popup as PopupModel;
 use Dashed\DashedPopups\Jobs\SendPopupFollowUpEmailJob;
 use Dashed\DashedPopups\Jobs\SyncPopupSubmissionToNewsletterJob;
@@ -241,19 +240,12 @@ class Popup extends Component
         if ($existingCode) {
             $code = $existingCode;
         } else {
-            $code = DiscountCode::create([
-                'site_ids' => [Sites::getActive()],
-                'name' => 'Popup '.$discountPercentage.'% korting',
-                'code' => $codePrefix.strtoupper(Str::random(8)),
-                'type' => 'percentage',
-                'discount_percentage' => $discountPercentage,
-                'use_stock' => true,
-                'stock' => 1,
-                'limit_use_per_customer' => true,
-                'minimal_requirements' => false,
-                'start_date' => now(),
-                'end_date' => now()->addDays($validDays),
-            ]);
+            $code = $this->popup->createDiscountCodeFor(
+                $codePrefix.strtoupper(Str::random(8)),
+                (float) $discountPercentage,
+                (int) $validDays,
+                [Sites::getActive()],
+            );
         }
 
         $updates = ['abandoned_email' => $email];
