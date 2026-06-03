@@ -10,6 +10,7 @@ use Dashed\DashedEcommerceCore\Models\Product;
 use Dashed\DashedEcommerceCore\Models\DiscountCode;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Dashed\DashedEcommerceCore\Classes\CurrencyHelper;
 use Dashed\DashedEcommerceCore\Models\ProductCategory;
 use Dashed\DashedPopups\Services\PopupTargetingService;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -210,7 +211,7 @@ class Popup extends Model
         $attributes = $this->discountCodeAttributes($discountPercentage);
 
         $label = ($this->discount_type ?: 'percentage') === 'amount'
-            ? 'Popup €' . (float) $this->discount_amount . ' korting'
+            ? 'Popup ' . CurrencyHelper::formatPrice((float) $this->discount_amount) . ' korting'
             : 'Popup ' . (float) ($attributes['discount_percentage'] ?? 0) . '% korting';
 
         $discountCode = DiscountCode::create(array_merge($attributes, [
