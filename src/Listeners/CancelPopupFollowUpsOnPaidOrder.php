@@ -4,8 +4,8 @@ namespace Dashed\DashedPopups\Listeners;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Dashed\DashedPopups\Models\PopupView;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
 /**
  * Cancels any pending follow-up emails for a popup view when the matching
