@@ -63,17 +63,26 @@ class Popup extends Model
             $popup->views()->delete();
         });
 
-        static::saved(function ($popup) {
-            // Bewaar invariant "maximaal 1 actieve popup tegelijk" idempotent:
-            // ook wanneer 'active' niet via deze save wijzigde maar er via
-            // bulk-update / seeder / direct-DB twee actieve popups zijn ontstaan
-            // ruimt iedere save dat alsnog op.
-            if ($popup->active) {
-                static::where('id', '!=', $popup->id)
-                    ->where('active', true)
-                    ->update(['active' => false]);
-            }
-        });
+        // Meerdere popups mogen tegelijk actief zijn. De frontend toont ze niet
+        // allemaal tegelijk: een globale tussentijd (globalGapBlocks) zorgt dat
+        // een bezoeker niet in korte tijd twee popups achter elkaar krijgt.
+    }
+
+    /**
+     * Bepaalt of een popup geblokkeerd moet worden omdat er recent (binnen de
+     * ingestelde tussentijd) al een popup aan deze bezoeker is getoond.
+     *
+     * @param  int|null  $lastShownAt  unix-timestamp van de laatst getoonde popup
+     * @param  int  $gapMinutes  minimale tussentijd in minuten (0 = uit)
+     * @param  int  $now  huidige unix-timestamp
+     */
+    public static function globalGapBlocks(?int $lastShownAt, int $gapMinutes, int $now): bool
+    {
+        if (! $lastShownAt || $gapMinutes <= 0) {
+            return false;
+        }
+
+        return ($now - $lastShownAt) < ($gapMinutes * 60);
     }
 
     public function views(): HasMany

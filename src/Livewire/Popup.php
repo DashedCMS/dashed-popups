@@ -8,6 +8,7 @@ use Dashed\DashedCore\Classes\Mails;
 use Dashed\DashedCore\Classes\Sites;
 use Illuminate\Support\Facades\Auth;
 use Dashed\DashedPopups\Models\PopupView;
+use Dashed\DashedCore\Models\Customsetting;
 use Dashed\DashedEcommerceCore\Models\Cart;
 use Illuminate\Support\Facades\RateLimiter;
 use Dashed\DashedPopups\Models\PopupVariant;
@@ -60,13 +61,13 @@ class Popup extends Component
             return;
         }
 
-        // Maximaal 1 popup per sessie. Zodra een andere popup deze sessie
-        // is getoond markeren we dat (zie verderop), en blokkeren we hier
-        // alle volgende popups. Voorkomt dat een tweede popup alsnog opent
-        // wanneer er om welke reden dan ook meerdere actieve popups in de
-        // DB staan of meerdere Livewire-instances naast elkaar mounten.
-        $alreadyShownInSession = (int) session('dashed_popups.shown_id', 0);
-        if ($alreadyShownInSession && $alreadyShownInSession !== (int) $this->popup->id) {
+        // Globale tussentijd tussen popups. Meerdere popups mogen tegelijk
+        // actief zijn, maar een bezoeker krijgt er niet in korte tijd twee
+        // achter elkaar: er verschijnt hooguit één popup per pagina-load en
+        // pas weer een volgende nadat de ingestelde tussentijd is verstreken.
+        $gapMinutes = (int) Customsetting::get('popups_minutes_between', Sites::getActive(), 30);
+        $lastShownAt = session('dashed_popups.last_shown_at');
+        if (PopupModel::globalGapBlocks($lastShownAt ? (int) $lastShownAt : null, $gapMinutes, now()->timestamp)) {
             return;
         }
 
@@ -146,7 +147,7 @@ class Popup extends Component
             $this->popupView->last_seen_at = now();
             $this->popupView->save();
 
-            session(['dashed_popups.shown_id' => (int) $this->popup->id]);
+            session(['dashed_popups.last_shown_at' => now()->timestamp]);
         }
     }
 

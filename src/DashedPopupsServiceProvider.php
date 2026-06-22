@@ -80,6 +80,13 @@ class DashedPopupsServiceProvider extends PackageServiceProvider
             'delete_popup' => 'Popups verwijderen',
         ]);
 
+        cms()->registerSettingsPage(
+            \Dashed\DashedPopups\Filament\Pages\Settings\PopupSettingsPage::class,
+            'Popups',
+            'cursor-arrow-ripple',
+            'Instellingen voor popups, zoals de minimale tijd tussen popups.'
+        );
+
         cms()->registerResourceDocs(
             resource: PopupResource::class,
             title: 'Popups',

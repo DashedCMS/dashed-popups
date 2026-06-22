@@ -5,6 +5,7 @@ namespace Dashed\DashedPopups;
 use Filament\Panel;
 use Filament\Contracts\Plugin;
 use Dashed\DashedPopups\Filament\Resources\PopupResource;
+use Dashed\DashedPopups\Filament\Pages\Settings\PopupSettingsPage;
 use Dashed\DashedPopups\Filament\Resources\PopupFollowUpFlowResource;
 
 class DashedPopupsPlugin implements Plugin
@@ -20,6 +21,9 @@ class DashedPopupsPlugin implements Plugin
             ->resources([
                 PopupResource::class,
                 PopupFollowUpFlowResource::class,
+            ])
+            ->pages([
+                PopupSettingsPage::class,
             ]);
     }
 
