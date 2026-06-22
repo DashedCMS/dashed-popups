@@ -147,6 +147,13 @@ class PopupResource extends Resource
                         ->numeric()
                         ->minValue(1)
                         ->default(14),
+                    TextInput::make('discount_usage_limit')
+                        ->label('Hoe vaak mag de kortingscode gebruikt worden?')
+                        ->helperText('Totaal aantal keer dat de code gebruikt kan worden.')
+                        ->numeric()
+                        ->minValue(1)
+                        ->default(1)
+                        ->required(),
                     Toggle::make('auto_apply_discount')
                         ->label('Automatisch toepassen op winkelmand')
                         ->default(true),

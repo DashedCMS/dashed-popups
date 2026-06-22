@@ -34,6 +34,7 @@ class Popup extends Model
         'blocks' => 'array',
         'discount_percentage' => 'decimal:2',
         'discount_valid_days' => 'integer',
+        'discount_usage_limit' => 'integer',
         'trigger_value' => 'integer',
         'show_again_after' => 'integer',
         'notify_on_conversion' => 'boolean',
@@ -187,8 +188,10 @@ class Popup extends Model
         $attributes = [
             'type' => $type,
             'use_stock' => true,
-            'stock' => 1,
-            'limit_use_per_customer' => true,
+            // Hoe vaak de code in totaal gebruikt mag worden (standaard 1),
+            // zonder per-klant-limiet.
+            'stock' => (int) ($this->discount_usage_limit ?: 1),
+            'limit_use_per_customer' => false,
             'minimal_requirements' => $requirement,
             // Only carry the threshold that matches the chosen requirement;
             // keep the rest null so the stored data stays clean.
