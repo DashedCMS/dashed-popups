@@ -61,16 +61,6 @@ class Popup extends Component
             return;
         }
 
-        // Globale tussentijd tussen popups. Meerdere popups mogen tegelijk
-        // actief zijn, maar een bezoeker krijgt er niet in korte tijd twee
-        // achter elkaar: er verschijnt hooguit één popup per pagina-load en
-        // pas weer een volgende nadat de ingestelde tussentijd is verstreken.
-        $gapMinutes = (int) Customsetting::get('popups_minutes_between', Sites::getActive(), 30);
-        $lastShownAt = session('dashed_popups.last_shown_at');
-        if (PopupModel::globalGapBlocks($lastShownAt ? (int) $lastShownAt : null, $gapMinutes, now()->timestamp)) {
-            return;
-        }
-
         $user = Auth::user();
         $identityEmail = $this->resolveIdentityEmail($user);
 
@@ -141,14 +131,41 @@ class Popup extends Component
         }
 
         $this->popupView = $popupView;
+    }
 
-        if ($this->showPopup) {
+    /**
+     * Door de blade aangeroepen op het moment dat de popup daadwerkelijk
+     * client-side wordt getoond (nadat de delay/scroll/exit-intent trigger
+     * is afgegaan). Pas hier reserveren we de globale tussentijd. Zo claimt
+     * een popup die later of voorwaardelijk verschijnt (bv. exit-intent) de
+     * slot niet al bij het mounten en verhongert hij geen andere popups.
+     *
+     * Geeft false terug wanneer de tussentijd nog loopt of de popup niet
+     * (meer) getoond mag worden; de blade laat de popup dan niet zien.
+     */
+    public function registerShown(): bool
+    {
+        if (! $this->showPopup || ! $this->popup) {
+            return false;
+        }
+
+        $gapMinutes = (int) Customsetting::get('popups_minutes_between', Sites::getActive(), 30);
+        $lastShownAt = session('dashed_popups.last_shown_at');
+        if (PopupModel::globalGapBlocks($lastShownAt ? (int) $lastShownAt : null, $gapMinutes, now()->timestamp)) {
+            $this->showPopup = false;
+
+            return false;
+        }
+
+        if ($this->popupView) {
             $this->popupView->seen_count++;
             $this->popupView->last_seen_at = now();
             $this->popupView->save();
-
-            session(['dashed_popups.last_shown_at' => now()->timestamp]);
         }
+
+        session(['dashed_popups.last_shown_at' => now()->timestamp]);
+
+        return true;
     }
 
     protected function resolveIdentityEmail($user): ?string

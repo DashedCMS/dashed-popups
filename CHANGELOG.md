@@ -2,6 +2,29 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.21.0 - 2026-06-26
+
+### Fixed
+- **Globale tussentijd verhongerde geen popups meer.** De globale tussentijd (`popups_minutes_between`) werd in `Livewire\Popup::mount()` al gereserveerd zodra een popup *in window* was — dus bij het server-side mounten, nog vóór de popup zichtbaar was. Omdat `dashed-core` alle actieve popups `orderByDesc('id')` mount, claimde de popup met het hoogste id de slot het eerst en blokkeerde hij lager-id popups op iedere pagina-load. Een exit-intent popup (die pas bij exit verschijnt) kon zo een delay-popup permanent verhongeren.
+
+### Changed
+- De tussentijd-check én -reservering zijn verplaatst van `mount()` naar een nieuwe `registerShown(): bool`-methode die de blade aanroept op het moment dat de popup daadwerkelijk client-side wordt getoond (na de delay/scroll/exit-intent trigger). `mount()` bepaalt nog enkel of een popup *in aanmerking komt* (window, cooldown, identiteit). `seen_count`/`last_seen_at` worden nu ook pas bij echte weergave bijgewerkt i.p.v. bij mount — statistieken tellen voortaan werkelijke vertoningen.
+
+### ⚠️ Vereiste aanpassing in consumer-apps
+De popup-blade (`resources/views/<theme>/popups/popup.blade.php`) moet `registerShown()` aanroepen vóór het tonen. Vervang in de Alpine `init()`/trigger het direct zetten van `self.show = true` door:
+
+```js
+const wire = this.$wire;
+const trigger = async () => {
+    if (self.triggered) return;
+    self.triggered = true;
+    const allowed = await wire.registerShown();
+    if (allowed) self.show = true;
+};
+```
+
+Zonder deze aanpassing blijft de popup werken, maar wordt de globale tussentijd niet meer toegepast (elke popup toont per eigen trigger).
+
 ## v4.16.0 - 2026-05-11
 
 ### Added
