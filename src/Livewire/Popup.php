@@ -349,6 +349,12 @@ class Popup extends Component
         }
     }
 
+    public function placeholder()
+    {
+        // Empty fixed-position overlay - invisible, no layout shift while lazy-loading.
+        return '<div style="display:none;" aria-hidden="true"></div>';
+    }
+
     public function render()
     {
         if ($this->popup && view()->exists('dashed.popups.'.str($this->popup->name ?? '')->slug().'-popup')) {
