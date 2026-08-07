@@ -139,7 +139,7 @@ class PopupResource extends Resource
                         ->visible(fn (Get $get) => ($get('discount_type') ?? 'percentage') === 'percentage'),
                     TextInput::make('discount_amount')
                         ->label(__('Kortingsbedrag'))
-                        ->prefix(__('€'))
+                        ->prefix('€')
                         ->numeric()
                         ->minValue(0.01)
                         ->required(fn (Get $get) => $get('discount_type') === 'amount')
@@ -176,7 +176,7 @@ class PopupResource extends Resource
                         ->visible(fn (Get $get) => $get('minimal_requirements') === 'products'),
                     TextInput::make('minimum_amount')
                         ->label(__('Minimum aankoopbedrag'))
-                        ->prefix(__('€'))
+                        ->prefix('€')
                         ->numeric()
                         ->minValue(1)
                         ->required(fn (Get $get) => $get('minimal_requirements') === 'amount')
