@@ -63,19 +63,19 @@ class PopupResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->schema([
-            Section::make('Type')
+            Section::make(__('Type'))
                 ->schema([
                     Select::make('type')
-                        ->label('Type')
+                        ->label(__('Type'))
                         ->options([
-                            'simple' => 'Simpel',
-                            'discount' => 'Korting + email-capture',
+                            'simple' => __('Simpel'),
+                            'discount' => __('Korting + email-capture'),
                         ])
                         ->default('simple')
                         ->required()
                         ->live(),
                     Select::make('_start_from_template')
-                        ->label('Begin vanaf standaard-template')
+                        ->label(__('Begin vanaf standaard-template'))
                         ->options(PopupTemplateRegistry::options())
                         ->dehydrated(false)
                         ->visible(fn (?Popup $record) => $record === null)
@@ -96,18 +96,18 @@ class PopupResource extends Resource
                 ->columns(2)
                 ->columnSpanFull(),
 
-            Section::make('Inhoud')
+            Section::make(__('Inhoud'))
                 ->schema([
                     TextInput::make('name')
-                        ->label('Naam')
+                        ->label(__('Naam'))
                         ->required()
                         ->maxLength(255)
                         ->columnSpanFull(),
                     TextInput::make('title')
-                        ->label('Kop')
+                        ->label(__('Kop'))
                         ->columnSpanFull(),
                     Builder::make('blocks')
-                        ->label('Inhoud-blokken')
+                        ->label(__('Inhoud-blokken'))
                         ->blocks(fn (?Popup $record) => PopupBlockRegistry::allowedBlocksFor($record ?? new Popup(['type' => 'simple'])))
                         ->collapsible()
                         ->cloneable()
@@ -115,21 +115,21 @@ class PopupResource extends Resource
                 ])
                 ->columnSpanFull(),
 
-            Section::make('Korting')
+            Section::make(__('Korting'))
                 ->visible(fn (Get $get) => $get('type') === 'discount')
                 ->schema([
                     Radio::make('discount_type')
-                        ->label('Type korting')
+                        ->label(__('Type korting'))
                         ->options([
-                            'percentage' => 'Percentage',
-                            'amount' => 'Vast bedrag',
+                            'percentage' => __('Percentage'),
+                            'amount' => __('Vast bedrag'),
                         ])
                         ->default('percentage')
                         ->reactive()
                         ->required(),
                     TextInput::make('discount_percentage')
-                        ->label('Kortingspercentage')
-                        ->helperText('Decimalen toegestaan (bijv. 12.5)')
+                        ->label(__('Kortingspercentage'))
+                        ->helperText(__('Decimalen toegestaan (bijv. 12.5)'))
                         ->numeric()
                         ->step(0.01)
                         ->minValue(0.01)
@@ -138,60 +138,60 @@ class PopupResource extends Resource
                         ->required(fn (Get $get) => ($get('discount_type') ?? 'percentage') === 'percentage')
                         ->visible(fn (Get $get) => ($get('discount_type') ?? 'percentage') === 'percentage'),
                     TextInput::make('discount_amount')
-                        ->label('Kortingsbedrag')
-                        ->prefix('€')
+                        ->label(__('Kortingsbedrag'))
+                        ->prefix(__('€'))
                         ->numeric()
                         ->minValue(0.01)
                         ->required(fn (Get $get) => $get('discount_type') === 'amount')
                         ->visible(fn (Get $get) => $get('discount_type') === 'amount'),
                     TextInput::make('discount_valid_days')
-                        ->label('Geldig voor (dagen)')
+                        ->label(__('Geldig voor (dagen)'))
                         ->numeric()
                         ->minValue(1)
                         ->default(14),
                     TextInput::make('discount_usage_limit')
-                        ->label('Hoe vaak mag de kortingscode gebruikt worden?')
-                        ->helperText('Totaal aantal keer dat de code gebruikt kan worden.')
+                        ->label(__('Hoe vaak mag de kortingscode gebruikt worden?'))
+                        ->helperText(__('Totaal aantal keer dat de code gebruikt kan worden.'))
                         ->numeric()
                         ->minValue(1)
                         ->default(1)
                         ->required(),
                     Toggle::make('auto_apply_discount')
-                        ->label('Automatisch toepassen op winkelmand')
+                        ->label(__('Automatisch toepassen op winkelmand'))
                         ->default(true),
                     Radio::make('minimal_requirements')
-                        ->label('Minimale eisen')
+                        ->label(__('Minimale eisen'))
                         ->options([
-                            'none' => 'Geen',
-                            'products' => 'Minimaal aantal producten',
-                            'amount' => 'Minimaal aankoopbedrag',
+                            'none' => __('Geen'),
+                            'products' => __('Minimaal aantal producten'),
+                            'amount' => __('Minimaal aankoopbedrag'),
                         ])
                         ->default('none')
                         ->reactive(),
                     TextInput::make('minimum_products_count')
-                        ->label('Minimum aantal producten')
+                        ->label(__('Minimum aantal producten'))
                         ->numeric()
                         ->minValue(1)
                         ->required(fn (Get $get) => $get('minimal_requirements') === 'products')
                         ->visible(fn (Get $get) => $get('minimal_requirements') === 'products'),
                     TextInput::make('minimum_amount')
-                        ->label('Minimum aankoopbedrag')
-                        ->prefix('€')
+                        ->label(__('Minimum aankoopbedrag'))
+                        ->prefix(__('€'))
                         ->numeric()
                         ->minValue(1)
                         ->required(fn (Get $get) => $get('minimal_requirements') === 'amount')
                         ->visible(fn (Get $get) => $get('minimal_requirements') === 'amount'),
                     Radio::make('valid_for')
-                        ->label('Van toepassing op')
+                        ->label(__('Van toepassing op'))
                         ->options([
-                            'all' => 'Alle producten',
-                            'products' => 'Specifieke producten',
-                            'categories' => 'Specifieke categorieën',
+                            'all' => __('Alle producten'),
+                            'products' => __('Specifieke producten'),
+                            'categories' => __('Specifieke categorieën'),
                         ])
                         ->default('all')
                         ->reactive(),
                     Select::make('discount_product_ids')
-                        ->label('Producten')
+                        ->label(__('Producten'))
                         ->multiple()
                         ->searchable()
                         ->dehydrated(false)
@@ -199,7 +199,7 @@ class PopupResource extends Resource
                         ->required(fn (Get $get) => $get('valid_for') === 'products')
                         ->visible(fn (Get $get) => $get('valid_for') === 'products'),
                     Select::make('discount_category_ids')
-                        ->label('Categorieën')
+                        ->label(__('Categorieën'))
                         ->multiple()
                         ->searchable()
                         ->dehydrated(false)
@@ -210,14 +210,14 @@ class PopupResource extends Resource
                 ->columns(3)
                 ->columnSpanFull(),
 
-            Section::make('Trigger')
+            Section::make(__('Trigger'))
                 ->schema([
                     Select::make('trigger_type')
-                        ->label('Wanneer tonen')
+                        ->label(__('Wanneer tonen'))
                         ->options([
-                            'delay' => 'Tijdsvertraging',
-                            'scroll' => 'Scroll-diepte',
-                            'exit_intent' => 'Exit-intent',
+                            'delay' => __('Tijdsvertraging'),
+                            'scroll' => __('Scroll-diepte'),
+                            'exit_intent' => __('Exit-intent'),
                         ])
                         ->default('delay')
                         ->live()
@@ -226,34 +226,34 @@ class PopupResource extends Resource
                         ->numeric()
                         ->default(5)
                         ->label(fn (Get $get) => match ($get('trigger_type')) {
-                            'scroll' => 'Scroll %',
-                            default => 'Seconden',
+                            'scroll' => __('Scroll %'),
+                            default => __('Seconden'),
                         })
                         ->visible(fn (Get $get) => in_array($get('trigger_type'), ['delay', 'scroll'], true)),
                 ])
                 ->columns(2)
                 ->columnSpanFull(),
 
-            Section::make('Display')
+            Section::make(__('Display'))
                 ->schema([
                     Toggle::make('active')
-                        ->label('Actief')
+                        ->label(__('Actief'))
                         ->default(false),
                     Toggle::make('notify_on_conversion')
-                        ->label('Stuur Telegram-notificatie bij conversie')
-                        ->helperText('Gebruikt de algemene Telegram-bot uit instellingen.')
+                        ->label(__('Stuur Telegram-notificatie bij conversie'))
+                        ->helperText(__('Gebruikt de algemene Telegram-bot uit instellingen.'))
                         ->default(false),
                     DateTimePicker::make('start_date')
-                        ->label('Start datum')
+                        ->label(__('Start datum'))
                         ->default(now())
                         ->required(),
                     DateTimePicker::make('end_date')
-                        ->label('Eind datum')
+                        ->label(__('Eind datum'))
                         ->default(now()->addYear())
                         ->required(),
                     TextInput::make('show_again_after')
-                        ->label('Opnieuw tonen na (minuten)')
-                        ->helperText('20160 = 14 dagen')
+                        ->label(__('Opnieuw tonen na (minuten)'))
+                        ->helperText(__('20160 = 14 dagen'))
                         ->default(20160)
                         ->required()
                         ->numeric(),
@@ -261,8 +261,8 @@ class PopupResource extends Resource
                 ->columns(2)
                 ->columnSpanFull(),
 
-            Section::make('Nieuwsbrief koppeling')
-                ->description('Stuur ingevulde e-mailadressen automatisch door naar nieuwsbrief-lijsten.')
+            Section::make(__('Nieuwsbrief koppeling'))
+                ->description(__('Stuur ingevulde e-mailadressen automatisch door naar nieuwsbrief-lijsten.'))
                 ->visible(count(forms()->builder('popupApiClasses')) > 0)
                 ->schema(function () {
                     $apiFields = [];
@@ -275,56 +275,56 @@ class PopupResource extends Resource
 
                     return [
                         Repeater::make('api_subscriptions')
-                            ->label('Koppelingen')
+                            ->label(__('Koppelingen'))
                             ->reactive()
                             ->schema(array_merge([
                                 Select::make('class')
-                                    ->label('Nieuwsbriefdienst')
+                                    ->label(__('Nieuwsbriefdienst'))
                                     ->options(collect(forms()->builder('popupApiClasses'))->pluck('name', 'class')->toArray())
                                     ->required()
                                     ->reactive(),
                             ], $apiFields))
-                            ->addActionLabel('Koppeling toevoegen')
+                            ->addActionLabel(__('Koppeling toevoegen'))
                             ->columns(['default' => 1, 'lg' => 2])
                             ->columnSpanFull(),
                     ];
                 })
                 ->columnSpanFull(),
 
-            Section::make('Follow-up flow')
-                ->description('Stuur automatisch een reeks follow-up mails naar gebruikers die hun email hebben ingevuld maar (nog) niet hebben besteld. Stopt automatisch zodra een betaalde order met dit emailadres binnenkomt.')
+            Section::make(__('Follow-up flow'))
+                ->description(__('Stuur automatisch een reeks follow-up mails naar gebruikers die hun email hebben ingevuld maar (nog) niet hebben besteld. Stopt automatisch zodra een betaalde order met dit emailadres binnenkomt.'))
                 ->schema([
                     Select::make('follow_up_flow_id')
-                        ->label('Flow')
+                        ->label(__('Flow'))
                         ->options(\Dashed\DashedPopups\Models\PopupFollowUpFlow::query()->where('is_active', true)->orderBy('name')->pluck('name', 'id')->toArray())
-                        ->placeholder('- Standaard flow gebruiken (indien ingesteld) -')
-                        ->helperText('Kies een specifieke flow voor deze popup. Leeg laten = de globaal als standaard gemarkeerde actieve flow wordt gebruikt; is er geen actieve standaard, dan worden er geen follow-ups verstuurd.')
+                        ->placeholder(__('- Standaard flow gebruiken (indien ingesteld) -'))
+                        ->helperText(__('Kies een specifieke flow voor deze popup. Leeg laten = de globaal als standaard gemarkeerde actieve flow wordt gebruikt; is er geen actieve standaard, dan worden er geen follow-ups verstuurd.'))
                         ->columnSpanFull(),
                 ])
                 ->columnSpanFull(),
 
-            Section::make('Weergave')
+            Section::make(__('Weergave'))
                 ->schema([
                     Radio::make('visibility_mode')
-                        ->label('Waar tonen?')
+                        ->label(__('Waar tonen?'))
                         ->options([
-                            'everywhere' => 'Overal',
-                            'only_selection' => 'Alleen op de selectie hieronder',
+                            'everywhere' => __('Overal'),
+                            'only_selection' => __('Alleen op de selectie hieronder'),
                         ])
                         ->default('everywhere')
                         ->required()
                         ->live()
                         ->columnSpanFull(),
 
-                    Section::make('Tonen op')
+                    Section::make(__('Tonen op'))
                         ->visible(fn (Get $get) => $get('visibility_mode') === 'only_selection')
                         ->schema([
                             Repeater::make('include_url_patterns')
-                                ->label('URL-patronen')
-                                ->helperText('Bijvoorbeeld /shop/*, /checkout')
+                                ->label(__('URL-patronen'))
+                                ->helperText(__('Bijvoorbeeld /shop/*, /checkout'))
                                 ->simple(
                                     TextInput::make('pattern')
-                                        ->placeholder('/shop/*')
+                                        ->placeholder(__('/shop/*'))
                                         ->required()
                                 )
                                 ->dehydrated(false)
@@ -334,14 +334,14 @@ class PopupResource extends Resource
                         ])
                         ->columnSpanFull(),
 
-                    Section::make('Uitsluiten op')
+                    Section::make(__('Uitsluiten op'))
                         ->schema([
                             Repeater::make('exclude_url_patterns')
-                                ->label('URL-patronen')
-                                ->helperText('Deze winnen altijd van include-regels')
+                                ->label(__('URL-patronen'))
+                                ->helperText(__('Deze winnen altijd van include-regels'))
                                 ->simple(
                                     TextInput::make('pattern')
-                                        ->placeholder('/checkout')
+                                        ->placeholder(__('/checkout'))
                                         ->required()
                                 )
                                 ->dehydrated(false)
@@ -353,13 +353,13 @@ class PopupResource extends Resource
                 ])
                 ->columnSpanFull(),
 
-            Section::make('Aanbevelingen')
-                ->description('Toon AI-aanbevolen producten in deze popup.')
+            Section::make(__('Aanbevelingen'))
+                ->description(__('Toon AI-aanbevolen producten in deze popup.'))
                 ->columnSpanFull()
                 ->schema([
                     Select::make('recommendation_strategy_slug')
-                        ->label('Aanbevelingen-strategie')
-                        ->helperText('Laat leeg om geen aanbevelingen te tonen.')
+                        ->label(__('Aanbevelingen-strategie'))
+                        ->helperText(__('Laat leeg om geen aanbevelingen te tonen.'))
                         ->options(function () {
                             if (! class_exists(\Dashed\DashedEcommerceCore\Services\Recommendations\RecommendationRegistry::class)) {
                                 return [];
@@ -381,7 +381,7 @@ class PopupResource extends Resource
                         // otherwise Filament writes it to the popups row and the
                         // save fails with "Unknown column recommendation_strategy_slug".
                         ->dehydrated(false)
-                        ->placeholder('Geen aanbevelingen')
+                        ->placeholder(__('Geen aanbevelingen'))
                         ->columnSpanFull(),
                 ]),
         ]);
@@ -392,28 +392,28 @@ class PopupResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('name')
-                    ->label('Naam')
+                    ->label(__('Naam'))
                     ->formatStateUsing(fn ($state) => ucfirst($state))
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('type')
-                    ->label('Type')
+                    ->label(__('Type'))
                     ->badge()
                     ->sortable(),
                 IconColumn::make('active')
-                    ->label('Actief')
+                    ->label(__('Actief'))
                     ->boolean(),
                 TextColumn::make('cached_views_count')
-                    ->label('Impressies')
+                    ->label(__('Impressies'))
                     ->sortable(),
                 TextColumn::make('cached_submits_count')
-                    ->label('Submits')
+                    ->label(__('Submits'))
                     ->sortable(),
                 TextColumn::make('cached_in_flow_count')
-                    ->label('In flow')
+                    ->label(__('In flow'))
                     ->sortable(),
                 TextColumn::make('conversion')
-                    ->label('Conversie')
+                    ->label(__('Conversie'))
                     ->getStateUsing(function ($record) {
                         $views = (int) ($record->cached_views_count ?? 0);
                         $submits = (int) ($record->cached_submits_count ?? 0);
@@ -421,10 +421,10 @@ class PopupResource extends Resource
                         return $views > 0 ? round(($submits / $views) * 100, 1).'%' : '-';
                     }),
                 TextColumn::make('cached_dismissals_count')
-                    ->label('Wegklik')
+                    ->label(__('Wegklik'))
                     ->sortable(),
                 TextColumn::make('dismissal_rate')
-                    ->label('Wegklik %')
+                    ->label(__('Wegklik %'))
                     ->getStateUsing(function ($record) {
                         $views = (int) ($record->cached_views_count ?? 0);
                         $dismissals = (int) ($record->cached_dismissals_count ?? 0);
@@ -432,7 +432,7 @@ class PopupResource extends Resource
                         return $views > 0 ? round(($dismissals / $views) * 100, 1).'%' : '-';
                     }),
                 TextColumn::make('overall_status_30d')
-                    ->label('Status (30d)')
+                    ->label(__('Status (30d)'))
                     ->badge()
                     ->colors([
                         'success' => 'Goed',
@@ -460,7 +460,7 @@ class PopupResource extends Resource
                         );
                     }),
                 TextColumn::make('bounce_rate_30d')
-                    ->label('Bounce (30d)')
+                    ->label(__('Bounce (30d)'))
                     ->getStateUsing(function ($record) {
                         $views = (int) ($record->cached_views_30d ?? 0);
                         $bounces = (int) ($record->cached_bounces_30d ?? 0);
@@ -468,7 +468,7 @@ class PopupResource extends Resource
                         return $views > 0 ? number_format(($bounces / $views) * 100, 1).'%' : '-';
                     }),
                 TextColumn::make('cached_revenue_30d')
-                    ->label('Omzet (30d)')
+                    ->label(__('Omzet (30d)'))
                     ->alignment('right')
                     ->sortable()
                     ->formatStateUsing(fn ($state) => $state > 0 ? CurrencyHelper::formatPrice((float) $state) : '-'),
@@ -482,8 +482,8 @@ class PopupResource extends Resource
             ->toolbarActions(ToolbarActions::getActions())
             ->filters([
                 \Filament\Tables\Filters\TernaryFilter::make('is_active')
-                    ->label('Actief')
-                    ->placeholder('Alle popups')
+                    ->label(__('Actief'))
+                    ->placeholder(__('Alle popups'))
                     ->trueLabel('Alleen actieve')
                     ->falseLabel('Alleen inactieve')
                     ->queries(
@@ -514,9 +514,9 @@ class PopupResource extends Resource
             $fields[] = Radio::make("target_mode_{$ruleType}_{$key}")
                 ->label(__('Zichtbaar op :model:', ['model' => $label]))
                 ->options([
-                    'none' => 'Geen beperking',
+                    'none' => __('Geen beperking'),
                     'all' => __('Alle :model:', ['model' => $label]),
-                    'selected' => 'Geselecteerde items',
+                    'selected' => __('Geselecteerde items'),
                 ])
                 ->default('none')
                 ->live()
@@ -533,7 +533,7 @@ class PopupResource extends Resource
                 ->columnSpanFull();
         }
 
-        return Fieldset::make('Per modeltype')
+        return Fieldset::make(__('Per modeltype'))
             ->schema($fields)
             ->columns(1);
     }

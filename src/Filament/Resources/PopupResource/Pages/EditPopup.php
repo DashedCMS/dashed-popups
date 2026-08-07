@@ -107,24 +107,23 @@ class EditPopup extends EditRecord
             Action::make('duplicate')
                 ->action('duplicate')
                 ->button()
-                ->label('Dupliceer'),
+                ->label(__('Dupliceer')),
             Action::make('syncToNewsletter')
-                ->label('Stuur eerder verzamelde emails door')
+                ->label(__('Stuur eerder verzamelde emails door'))
                 ->icon('heroicon-o-paper-airplane')
                 ->color('primary')
                 ->visible(fn ($record) => ! empty($record->api_subscriptions))
                 ->disabled(fn ($record) => $this->totalSubmissionsCount($record) === 0)
                 ->requiresConfirmation()
-                ->modalHeading('Eerder verzamelde aanmeldingen doorsturen')
-                ->modalDescription(fn ($record) => sprintf(
-                    'Er staan %d aanmeldingen in totaal, waarvan %d nog nooit zijn doorgezet. Standaard worden alleen die nog-niet-verzonden inzendingen doorgezet. Schakel onderstaande toggle in om alles opnieuw door te sturen.',
-                    $this->totalSubmissionsCount($record),
-                    $this->pendingBackfillCount($record),
-                ))
+                ->modalHeading(__('Eerder verzamelde aanmeldingen doorsturen'))
+                ->modalDescription(fn ($record) => __('Er staan :totaal aanmeldingen in totaal, waarvan :nogNooit nog nooit zijn doorgezet. Standaard worden alleen die nog-niet-verzonden inzendingen doorgezet. Schakel onderstaande toggle in om alles opnieuw door te sturen.', [
+                    'totaal' => $this->totalSubmissionsCount($record),
+                    'nogNooit' => $this->pendingBackfillCount($record),
+                ]))
                 ->schema([
                     Toggle::make('resendAll')
-                        ->label('Alles opnieuw versturen (ook reeds verzonden inzendingen)')
-                        ->helperText('Bij dubbele inzendingen rekent de nieuwsbriefdienst zelf af op duplicate-handling. Aan = forceer alles, uit = alleen nieuwe.')
+                        ->label(__('Alles opnieuw versturen (ook reeds verzonden inzendingen)'))
+                        ->helperText(__('Bij dubbele inzendingen rekent de nieuwsbriefdienst zelf af op duplicate-handling. Aan = forceer alles, uit = alleen nieuwe.'))
                         ->default(false),
                 ])
                 ->action(fn ($record, array $data) => $this->dispatchNewsletterBackfill(
@@ -132,19 +131,18 @@ class EditPopup extends EditRecord
                     resendAll: (bool) ($data['resendAll'] ?? false),
                 )),
             Action::make('backfillFollowUpFlow')
-                ->label('Follow-up flow toepassen op bestaande inzendingen')
+                ->label(__('Follow-up flow toepassen op bestaande inzendingen'))
                 ->icon('heroicon-o-arrow-uturn-left')
                 ->color('warning')
                 ->visible(fn ($record): bool => $record?->resolveFollowUpFlow() !== null)
-                ->modalHeading('Follow-up flow toepassen op bestaande popup-conversies')
-                ->modalDescription(fn ($record) => sprintf(
-                    'Plant alsnog de emails van de flow "%s" voor inzendingen van deze popup die nog niet in een follow-up zitten. Records die al gestart of geannuleerd zijn worden overgeslagen.',
-                    $record?->resolveFollowUpFlow()?->name ?? '?',
-                ))
+                ->modalHeading(__('Follow-up flow toepassen op bestaande popup-conversies'))
+                ->modalDescription(fn ($record) => __('Plant alsnog de emails van de flow ":naam" voor inzendingen van deze popup die nog niet in een follow-up zitten. Records die al gestart of geannuleerd zijn worden overgeslagen.', [
+                    'naam' => $record?->resolveFollowUpFlow()?->name ?? '?',
+                ]))
                 ->schema([
                     TextInput::make('since_days')
-                        ->label('Aantal dagen terug')
-                        ->helperText('Backfill geldt voor PopupViews waarvan submitted_at binnen de afgelopen X dagen valt.')
+                        ->label(__('Aantal dagen terug'))
+                        ->helperText(__('Backfill geldt voor PopupViews waarvan submitted_at binnen de afgelopen X dagen valt.'))
                         ->numeric()
                         ->minValue(1)
                         ->maxValue(365)
@@ -156,7 +154,7 @@ class EditPopup extends EditRecord
 
                     if (! $flow) {
                         Notification::make()
-                            ->title('Geen follow-up flow gekoppeld')
+                            ->title(__('Geen follow-up flow gekoppeld'))
                             ->warning()
                             ->send();
 
@@ -170,15 +168,14 @@ class EditPopup extends EditRecord
                     );
 
                     Notification::make()
-                        ->title('Backfill voltooid')
-                        ->body(sprintf(
-                            'Gestart: %d. Al gestart: %d. Geannuleerd: %d. Geen email: %d. Emails ingepland: %d.',
-                            $stats['views_started'],
-                            $stats['views_skipped_already_started'],
-                            $stats['views_skipped_cancelled'],
-                            $stats['views_skipped_no_email'],
-                            $stats['emails_dispatched'],
-                        ))
+                        ->title(__('Backfill voltooid'))
+                        ->body(__('Gestart: :started. Al gestart: :alreadyStarted. Geannuleerd: :cancelled. Geen email: :noEmail. Emails ingepland: :scheduled.', [
+                            'started' => $stats['views_started'],
+                            'alreadyStarted' => $stats['views_skipped_already_started'],
+                            'cancelled' => $stats['views_skipped_cancelled'],
+                            'noEmail' => $stats['views_skipped_no_email'],
+                            'scheduled' => $stats['emails_dispatched'],
+                        ]))
                         ->success()
                         ->send();
                 }),
@@ -205,7 +202,7 @@ class EditPopup extends EditRecord
         });
 
         Notification::make()
-            ->title("{$count} aanmeldingen worden doorgezet")
+            ->title(__(':aantal aanmeldingen worden doorgezet', ['aantal' => $count]))
             ->success()
             ->send();
 

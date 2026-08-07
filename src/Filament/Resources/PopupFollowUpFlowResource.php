@@ -57,26 +57,26 @@ class PopupFollowUpFlowResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->schema([
-            Section::make('Algemeen')
+            Section::make(__('Algemeen'))
                 ->schema([
                     TextInput::make('name')
-                        ->label('Naam')
+                        ->label(__('Naam'))
                         ->required()
                         ->maxLength(255)
                         ->columnSpanFull(),
                     Toggle::make('is_active')
-                        ->label('Actieve flow')
+                        ->label(__('Actieve flow'))
                         ->default(true)
-                        ->helperText('Slechts één flow kan actief zijn tegelijk. Een nieuwe actieve flow zet de vorige automatisch op inactive.'),
+                        ->helperText(__('Slechts één flow kan actief zijn tegelijk. Een nieuwe actieve flow zet de vorige automatisch op inactive.')),
                     Toggle::make('is_default')
-                        ->label('Standaard flow')
-                        ->helperText('De standaard flow wordt gebruikt voor popups die zelf geen flow hebben gekozen. Slechts één flow tegelijk kan standaard zijn.'),
+                        ->label(__('Standaard flow'))
+                        ->helperText(__('De standaard flow wordt gebruikt voor popups die zelf geen flow hebben gekozen. Slechts één flow tegelijk kan standaard zijn.')),
                 ])
                 ->columns(2)
                 ->columnSpanFull(),
 
-            Section::make('Opvolg-emails')
-                ->description('Voeg de emails toe die in volgorde verstuurd worden nadat een bezoeker zijn email achterlaat zonder af te rekenen.')
+            Section::make(__('Opvolg-emails'))
+                ->description(__('Voeg de emails toe die in volgorde verstuurd worden nadat een bezoeker zijn email achterlaat zonder af te rekenen.'))
                 ->schema([
                     Repeater::make('emails')
                         ->relationship()
@@ -101,20 +101,20 @@ class PopupFollowUpFlowResource extends Resource
                         })
                         ->orderColumn('sort')
                         ->defaultItems(1)
-                        ->addActionLabel('Email toevoegen')
+                        ->addActionLabel(__('Email toevoegen'))
                         ->reorderableWithButtons()
                         ->collapsible()
                         ->extraItemActions([
                             Action::make('sendTestMail')
-                                ->label('Test mail naar mij sturen')
+                                ->label(__('Test mail naar mij sturen'))
                                 ->icon('heroicon-o-paper-airplane')
                                 ->color('info')
-                                ->modalHeading('Test mail versturen')
-                                ->modalDescription('Verstuurt een synchrone test-render van deze mail naar het opgegeven adres. Werkt ook voor nog niet opgeslagen wijzigingen.')
-                                ->modalSubmitActionLabel('Versturen')
+                                ->modalHeading(__('Test mail versturen'))
+                                ->modalDescription(__('Verstuurt een synchrone test-render van deze mail naar het opgegeven adres. Werkt ook voor nog niet opgeslagen wijzigingen.'))
+                                ->modalSubmitActionLabel(__('Versturen'))
                                 ->form([
                                     TextInput::make('recipient')
-                                        ->label('Ontvanger')
+                                        ->label(__('Ontvanger'))
                                         ->email()
                                         ->required()
                                         ->default(fn () => auth()->user()?->email),
@@ -148,13 +148,13 @@ class PopupFollowUpFlowResource extends Resource
                                         Mail::to($recipient)->sendNow($mailable);
 
                                         Notification::make()
-                                            ->title('Test mail verstuurd naar '.$recipient)
+                                            ->title(__('Test mail verstuurd naar :email', ['email' => $recipient]))
                                             ->success()
                                             ->send();
                                     } catch (\Throwable $e) {
                                         report($e);
                                         Notification::make()
-                                            ->title('Test mail mislukt')
+                                            ->title(__('Test mail mislukt'))
                                             ->body($e->getMessage())
                                             ->danger()
                                             ->send();
@@ -174,100 +174,100 @@ class PopupFollowUpFlowResource extends Resource
                         })
                         ->schema([
                             TextInput::make('send_after_minutes')
-                                ->label('Versturen na (minuten)')
-                                ->helperText('60 = 1 uur, 1440 = 1 dag, 4320 = 3 dagen')
+                                ->label(__('Versturen na (minuten)'))
+                                ->helperText(__('60 = 1 uur, 1440 = 1 dag, 4320 = 3 dagen'))
                                 ->numeric()
                                 ->minValue(1)
                                 ->default(60)
                                 ->required(),
                             Toggle::make('is_active')
-                                ->label('Actief')
+                                ->label(__('Actief'))
                                 ->default(true),
                             TextInput::make('subject')
-                                ->label('Onderwerp')
-                                ->helperText('Beschikbare '.self::VARIABLES_HELP)
+                                ->label(__('Onderwerp'))
+                                ->helperText(__('Beschikbare :variabelen', ['variabelen' => __(self::VARIABLES_HELP)]))
                                 ->required()
                                 ->maxLength(255)
                                 ->columnSpanFull(),
                             Builder::make('blocks')
-                                ->label('Inhoud blokken')
-                                ->helperText(self::VARIABLES_HELP.' - werken in elk tekst-, link- en code-veld hieronder.')
+                                ->label(__('Inhoud blokken'))
+                                ->helperText(__(':variabelen - werken in elk tekst-, link- en code-veld hieronder.', ['variabelen' => __(self::VARIABLES_HELP)]))
                                 ->blocks([
                                     Builder\Block::make('heading')
-                                        ->label('Kop')
+                                        ->label(__('Kop'))
                                         ->icon('heroicon-o-bars-3-bottom-left')
                                         ->schema([
                                             TextInput::make('content')
-                                                ->label('Tekst')
-                                                ->helperText(self::VARIABLES_HELP)
+                                                ->label(__('Tekst'))
+                                                ->helperText(__(self::VARIABLES_HELP))
                                                 ->required(),
                                         ]),
                                     Builder\Block::make('paragraph')
-                                        ->label('Tekst')
+                                        ->label(__('Tekst'))
                                         ->icon('heroicon-o-document-text')
                                         ->schema([
                                             RichEditor::make('content')
-                                                ->label('Tekst')
-                                                ->helperText(self::VARIABLES_HELP)
+                                                ->label(__('Tekst'))
+                                                ->helperText(__(self::VARIABLES_HELP))
                                                 ->toolbarButtons([
                                                     'bold', 'italic', 'underline', 'strike',
                                                     'link', 'bulletList', 'orderedList', 'h2', 'h3',
                                                 ]),
                                         ]),
                                     Builder\Block::make('button')
-                                        ->label('Knop')
+                                        ->label(__('Knop'))
                                         ->icon('heroicon-o-cursor-arrow-rays')
                                         ->schema([
                                             TextInput::make('label')
-                                                ->label('Knoptekst')
-                                                ->helperText(self::VARIABLES_HELP)
+                                                ->label(__('Knoptekst'))
+                                                ->helperText(__(self::VARIABLES_HELP))
                                                 ->default('Bekijk')
                                                 ->required(),
                                             TextInput::make('url')
-                                                ->label('URL')
-                                                ->helperText(self::VARIABLES_HELP.' - laat `:siteUrl:` staan voor de homepage.')
+                                                ->label(__('URL'))
+                                                ->helperText(__(':variabelen - laat `:siteUrl:` staan voor de homepage.', ['variabelen' => __(self::VARIABLES_HELP)]))
                                                 ->default(':siteUrl:')
                                                 ->required(),
                                         ]),
                                     Builder\Block::make('image')
-                                        ->label('Afbeelding')
+                                        ->label(__('Afbeelding'))
                                         ->icon('heroicon-o-photo')
                                         ->schema([
                                             TextInput::make('url')
-                                                ->label('URL')
-                                                ->helperText(self::VARIABLES_HELP)
+                                                ->label(__('URL'))
+                                                ->helperText(__(self::VARIABLES_HELP))
                                                 ->required(),
                                             TextInput::make('alt')
-                                                ->label('Alt-tekst')
-                                                ->helperText(self::VARIABLES_HELP),
+                                                ->label(__('Alt-tekst'))
+                                                ->helperText(__(self::VARIABLES_HELP)),
                                         ]),
                                     Builder\Block::make('divider')
-                                        ->label('Scheidingslijn')
+                                        ->label(__('Scheidingslijn'))
                                         ->icon('heroicon-o-minus')
                                         ->schema([]),
                                     Builder\Block::make('usp')
-                                        ->label('USPs')
+                                        ->label(__('USPs'))
                                         ->icon('heroicon-o-check-badge')
                                         ->maxItems(1)
                                         ->schema([
                                             Textarea::make('items')
-                                                ->label('USPs (één per regel)')
-                                                ->helperText('Voer elke USP op een nieuwe regel in. '.self::VARIABLES_HELP)
+                                                ->label(__('USPs (één per regel)'))
+                                                ->helperText(__('Voer elke USP op een nieuwe regel in. :variabelen', ['variabelen' => __(self::VARIABLES_HELP)]))
                                                 ->rows(4)
                                                 ->default("Gratis verzending\nSnel geleverd\nVeilig betalen"),
                                         ]),
                                     Builder\Block::make('discount')
-                                        ->label('Kortingscode')
+                                        ->label(__('Kortingscode'))
                                         ->icon('heroicon-o-tag')
                                         ->maxItems(1)
                                         ->schema([
                                             TextInput::make('label')
-                                                ->label('Tekst boven de code')
-                                                ->helperText(self::VARIABLES_HELP)
+                                                ->label(__('Tekst boven de code'))
+                                                ->helperText(__(self::VARIABLES_HELP))
                                                 ->default('Gebruik deze code voor extra korting:'),
                                             TextInput::make('code')
-                                                ->label('Code')
-                                                ->helperText('Laat leeg om de code van de popup-conversie zelf te gebruiken. Optionele '.self::VARIABLES_HELP),
+                                                ->label(__('Code'))
+                                                ->helperText(__('Laat leeg om de code van de popup-conversie zelf te gebruiken. Optionele :variabelen', ['variabelen' => __(self::VARIABLES_HELP)])),
                                         ]),
                                 ])
                                 ->columnSpanFull()
@@ -286,24 +286,24 @@ class PopupFollowUpFlowResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('name')
-                    ->label('Naam')
+                    ->label(__('Naam'))
                     ->searchable()
                     ->weight('bold'),
                 TextColumn::make('emails_count')
-                    ->label('Emails')
+                    ->label(__('Emails'))
                     ->counts('emails')
                     ->badge()
                     ->color('info'),
                 IconColumn::make('is_active')
-                    ->label('Actief')
+                    ->label(__('Actief'))
                     ->boolean()
                     ->trueColor('success')
                     ->falseColor('gray'),
                 IconColumn::make('is_default')
-                    ->label('Standaard')
+                    ->label(__('Standaard'))
                     ->boolean(),
                 TextColumn::make('updated_at')
-                    ->label('Bijgewerkt')
+                    ->label(__('Bijgewerkt'))
                     ->dateTime('d-m-Y H:i', 'Europe/Amsterdam')
                     ->sortable(),
             ])

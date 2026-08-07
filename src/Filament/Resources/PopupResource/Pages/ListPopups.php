@@ -37,17 +37,17 @@ class ListPopups extends ListRecords
         return [
             CreateAction::make(),
             Action::make('generateFromTemplate')
-                ->label('Genereer standaard popup')
+                ->label(__('Genereer standaard popup'))
                 ->icon('heroicon-o-sparkles')
                 ->color('gray')
                 ->visible(fn () => ! empty(PopupTemplateRegistry::options()))
                 ->form([
                     Select::make('template')
-                        ->label('Template')
+                        ->label(__('Template'))
                         ->options(PopupTemplateRegistry::options())
                         ->required(),
                     TextInput::make('name')
-                        ->label('Naam')
+                        ->label(__('Naam'))
                         ->required()
                         ->default(fn () => 'standaard-'.now()->format('Y-m-d-His')),
                 ])
@@ -62,8 +62,8 @@ class ListPopups extends ListRecords
                     ], $attributes, ['blocks' => $blocks]));
 
                     Notification::make()
-                        ->title('Standaard popup aangemaakt')
-                        ->body('Je kunt hem nu aanpassen voordat je hem activeert.')
+                        ->title(__('Standaard popup aangemaakt'))
+                        ->body(__('Je kunt hem nu aanpassen voordat je hem activeert.'))
                         ->success()
                         ->send();
 

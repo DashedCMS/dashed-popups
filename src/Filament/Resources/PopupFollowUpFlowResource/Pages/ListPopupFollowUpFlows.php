@@ -17,24 +17,24 @@ class ListPopupFollowUpFlows extends ListRecords
     {
         return [
             Action::make('create_default')
-                ->label('Maak standaard flow aan')
+                ->label(__('Maak standaard flow aan'))
                 ->icon('heroicon-o-sparkles')
                 ->color('success')
                 ->requiresConfirmation()
-                ->modalHeading('Standaard flow aanmaken')
-                ->modalDescription('Dit maakt een nieuwe flow aan met 3 stappen (1 uur, 24 uur en 72 uur na conversie) en stelt deze in als actieve standaard flow. Andere flows worden automatisch op inactive en niet-standaard gezet.')
-                ->modalSubmitActionLabel('Aanmaken')
+                ->modalHeading(__('Standaard flow aanmaken'))
+                ->modalDescription(__('Dit maakt een nieuwe flow aan met 3 stappen (1 uur, 24 uur en 72 uur na conversie) en stelt deze in als actieve standaard flow. Andere flows worden automatisch op inactive en niet-standaard gezet.'))
+                ->modalSubmitActionLabel(__('Aanmaken'))
                 ->action(function () {
                     PopupFollowUpFlow::createDefault();
 
                     Notification::make()
-                        ->title('Standaard flow aangemaakt en geactiveerd')
+                        ->title(__('Standaard flow aangemaakt en geactiveerd'))
                         ->success()
                         ->send();
                 }),
 
             CreateAction::make()
-                ->label('Nieuwe flow'),
+                ->label(__('Nieuwe flow')),
         ];
     }
 }

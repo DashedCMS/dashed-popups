@@ -45,8 +45,8 @@ class PopupSettingsPage extends Page implements HasSchemas
                 ->label(ucfirst($site['name']))
                 ->schema([
                     TextInput::make("popups_minutes_between_{$site['id']}")
-                        ->label('Minimale tijd tussen popups (minuten)')
-                        ->helperText('Een bezoeker krijgt binnen deze tijd niet twee verschillende popups achter elkaar. 0 = geen tussentijd.')
+                        ->label(__('Minimale tijd tussen popups (minuten)'))
+                        ->helperText(__('Een bezoeker krijgt binnen deze tijd niet twee verschillende popups achter elkaar. 0 = geen tussentijd.'))
                         ->numeric()
                         ->minValue(0)
                         ->default(30),
@@ -69,7 +69,7 @@ class PopupSettingsPage extends Page implements HasSchemas
         }
 
         Notification::make()
-            ->title('De popup-instellingen zijn opgeslagen')
+            ->title(__('De popup-instellingen zijn opgeslagen'))
             ->success()
             ->send();
 

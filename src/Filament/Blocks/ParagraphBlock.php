@@ -10,11 +10,11 @@ class ParagraphBlock
     public static function make(): Block
     {
         return Block::make('paragraph')
-            ->label('Paragraaf')
+            ->label(__('Paragraaf'))
             ->icon('heroicon-o-bars-3')
             ->schema([
                 Textarea::make('text')
-                    ->label('Tekst')
+                    ->label(__('Tekst'))
                     ->required()
                     ->rows(4),
             ]);

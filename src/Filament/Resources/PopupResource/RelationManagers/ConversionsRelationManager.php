@@ -28,11 +28,11 @@ class ConversionsRelationManager extends RelationManager
     public function infolist(Schema $schema): Schema
     {
         return $schema->components([
-            TextEntry::make('submitted_at')->label('Tijdstip')->dateTime('d-m-Y H:i'),
-            TextEntry::make('discountCode.code')->label('Kortingscode')->copyable(),
-            TextEntry::make('ip_address')->label('IP'),
+            TextEntry::make('submitted_at')->label(__('Tijdstip'))->dateTime('d-m-Y H:i'),
+            TextEntry::make('discountCode.code')->label(__('Kortingscode'))->copyable(),
+            TextEntry::make('ip_address')->label(__('IP')),
             TextEntry::make('matched_order_id')
-                ->label('Gekoppelde order')
+                ->label(__('Gekoppelde order'))
                 ->formatStateUsing(function ($state, $record) {
                     if (! $state) {
                         return 'Nog geen order gekoppeld';
@@ -51,7 +51,7 @@ class ConversionsRelationManager extends RelationManager
 
                     return \Dashed\DashedEcommerceCore\Filament\Resources\OrderResource::getUrl('edit', ['record' => $record->matched_order_id]);
                 }, shouldOpenInNewTab: true),
-            KeyValueEntry::make('content')->label('Ingevoerde gegevens'),
+            KeyValueEntry::make('content')->label(__('Ingevoerde gegevens')),
         ]);
     }
 
@@ -61,23 +61,23 @@ class ConversionsRelationManager extends RelationManager
             ->defaultSort('submitted_at', 'desc')
             ->columns([
                 TextColumn::make('submitted_at')
-                    ->label('Tijdstip')
+                    ->label(__('Tijdstip'))
                     ->dateTime('d-m-Y H:i')
                     ->sortable(),
                 TextColumn::make('content.email')
-                    ->label('Email')
+                    ->label(__('Email'))
                     ->copyable()
                     ->searchable(),
                 IconColumn::make('matched_order_id')
-                    ->label('Order')
+                    ->label(__('Order'))
                     ->boolean()
                     ->trueIcon('heroicon-o-check-circle')
                     ->trueColor('success')
                     ->falseIcon('heroicon-o-minus')
                     ->falseColor('gray')
                     ->tooltip(fn ($record) => $record->matched_order_id
-                        ? 'Order #'.($record->matchedOrder?->invoice_id ?? $record->matched_order_id)
-                        : 'Nog geen order gekoppeld')
+                        ? __('Order #:nummer', ['nummer' => $record->matchedOrder?->invoice_id ?? $record->matched_order_id])
+                        : __('Nog geen order gekoppeld'))
                     ->url(function ($record) {
                         if (! $record->matched_order_id) {
                             return null;
@@ -89,7 +89,7 @@ class ConversionsRelationManager extends RelationManager
                         return \Dashed\DashedEcommerceCore\Filament\Resources\OrderResource::getUrl('edit', ['record' => $record->matched_order_id]);
                     }, shouldOpenInNewTab: true),
                 TextColumn::make('follow_up_status')
-                    ->label('Follow-up flow')
+                    ->label(__('Follow-up flow'))
                     ->state(fn ($record) => match ($record->followUpStatus()) {
                         'cancelled' => 'Geannuleerd',
                         'not_in_flow' => 'Niet in flow',
@@ -105,30 +105,30 @@ class ConversionsRelationManager extends RelationManager
                     })
                     ->toggleable(),
                 TextColumn::make('discountCode.code')
-                    ->label('Kortingscode')
+                    ->label(__('Kortingscode'))
                     ->copyable()
                     ->toggleable(),
                 TextColumn::make('ip_address')
-                    ->label('IP')
+                    ->label(__('IP'))
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 TernaryFilter::make('has_discount_code')
-                    ->label('Heeft kortingscode')
+                    ->label(__('Heeft kortingscode'))
                     ->queries(
                         true: fn (Builder $q) => $q->whereNotNull('discount_code_id'),
                         false: fn (Builder $q) => $q->whereNull('discount_code_id'),
                     ),
                 TernaryFilter::make('has_matched_order')
-                    ->label('Heeft order')
+                    ->label(__('Heeft order'))
                     ->queries(
                         true: fn (Builder $q) => $q->whereNotNull('matched_order_id'),
                         false: fn (Builder $q) => $q->whereNull('matched_order_id'),
                     ),
                 Filter::make('submitted_at')
                     ->schema([
-                        DatePicker::make('from')->label('Vanaf'),
-                        DatePicker::make('until')->label('Tot en met'),
+                        DatePicker::make('from')->label(__('Vanaf')),
+                        DatePicker::make('until')->label(__('Tot en met')),
                     ])
                     ->query(function (Builder $q, array $data): Builder {
                         return $q

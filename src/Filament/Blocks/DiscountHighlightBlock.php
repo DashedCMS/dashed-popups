@@ -10,17 +10,17 @@ class DiscountHighlightBlock
     public static function make(): Block
     {
         return Block::make('discount_highlight')
-            ->label('Korting-highlight')
+            ->label(__('Korting-highlight'))
             ->icon('heroicon-o-tag')
             ->schema([
                 TextInput::make('label')
-                    ->label('Label boven')
+                    ->label(__('Label boven'))
                     ->default('Krijg nu'),
                 TextInput::make('value')
-                    ->label('Hoofdwaarde (bijv. "10%")')
+                    ->label(__('Hoofdwaarde (bijv. "10%")'))
                     ->required(),
                 TextInput::make('suffix')
-                    ->label('Label onder')
+                    ->label(__('Label onder'))
                     ->default('Korting'),
             ]);
     }

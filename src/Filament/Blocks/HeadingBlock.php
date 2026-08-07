@@ -11,15 +11,15 @@ class HeadingBlock
     public static function make(): Block
     {
         return Block::make('heading')
-            ->label('Koptekst')
+            ->label(__('Koptekst'))
             ->icon('heroicon-o-h1')
             ->schema([
                 TextInput::make('text')
-                    ->label('Tekst')
+                    ->label(__('Tekst'))
                     ->required(),
                 Select::make('level')
-                    ->label('Niveau')
-                    ->options(['h1' => 'H1', 'h2' => 'H2', 'h3' => 'H3'])
+                    ->label(__('Niveau'))
+                    ->options(['h1' => __('H1'), 'h2' => __('H2'), 'h3' => __('H3')])
                     ->default('h2'),
             ]);
     }

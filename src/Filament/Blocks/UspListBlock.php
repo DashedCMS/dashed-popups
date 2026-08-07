@@ -11,11 +11,11 @@ class UspListBlock
     public static function make(): Block
     {
         return Block::make('usp_list')
-            ->label('USP-lijst')
+            ->label(__('USP-lijst'))
             ->icon('heroicon-o-check-circle')
             ->schema([
                 Repeater::make('items')
-                    ->label('USPs')
+                    ->label(__('USPs'))
                     ->simple(TextInput::make('text')->required())
                     ->minItems(1)
                     ->defaultItems(3),

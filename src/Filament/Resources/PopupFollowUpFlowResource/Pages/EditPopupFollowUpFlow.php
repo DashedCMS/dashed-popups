@@ -19,15 +19,15 @@ class EditPopupFollowUpFlow extends EditRecord
     {
         return [
             Action::make('backfillExisting')
-                ->label('Toepassen op bestaande')
+                ->label(__('Toepassen op bestaande'))
                 ->icon('heroicon-o-arrow-uturn-left')
                 ->color('warning')
-                ->modalHeading('Flow toepassen op bestaande popup-conversies')
-                ->modalDescription('Plant alsnog de emails van deze flow voor PopupViews waarvan de bezoeker al een email heeft ingevuld maar nog niet in een follow-up flow zit. Records die al een follow-up gestart of geannuleerd hebben worden overgeslagen.')
+                ->modalHeading(__('Flow toepassen op bestaande popup-conversies'))
+                ->modalDescription(__('Plant alsnog de emails van deze flow voor PopupViews waarvan de bezoeker al een email heeft ingevuld maar nog niet in een follow-up flow zit. Records die al een follow-up gestart of geannuleerd hebben worden overgeslagen.'))
                 ->form([
                     TextInput::make('since_days')
-                        ->label('Aantal dagen terug')
-                        ->helperText('Backfill geldt voor PopupViews waarvan submitted_at binnen de afgelopen X dagen valt.')
+                        ->label(__('Aantal dagen terug'))
+                        ->helperText(__('Backfill geldt voor PopupViews waarvan submitted_at binnen de afgelopen X dagen valt.'))
                         ->numeric()
                         ->minValue(1)
                         ->maxValue(365)
@@ -44,15 +44,14 @@ class EditPopupFollowUpFlow extends EditRecord
                     );
 
                     Notification::make()
-                        ->title('Backfill voltooid')
-                        ->body(sprintf(
-                            'Gestart: %d. Al gestart: %d. Geannuleerd: %d. Geen email: %d. Emails ingepland: %d.',
-                            $stats['views_started'],
-                            $stats['views_skipped_already_started'],
-                            $stats['views_skipped_cancelled'],
-                            $stats['views_skipped_no_email'],
-                            $stats['emails_dispatched'],
-                        ))
+                        ->title(__('Backfill voltooid'))
+                        ->body(__('Gestart: :started. Al gestart: :alreadyStarted. Geannuleerd: :cancelled. Geen email: :noEmail. Emails ingepland: :scheduled.', [
+                            'started' => $stats['views_started'],
+                            'alreadyStarted' => $stats['views_skipped_already_started'],
+                            'cancelled' => $stats['views_skipped_cancelled'],
+                            'noEmail' => $stats['views_skipped_no_email'],
+                            'scheduled' => $stats['emails_dispatched'],
+                        ]))
                         ->success()
                         ->send();
                 }),

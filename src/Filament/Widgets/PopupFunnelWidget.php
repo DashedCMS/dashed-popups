@@ -45,7 +45,7 @@ class PopupFunnelWidget extends StatsOverviewWidget
 
         return [
             Stat::make('Views', number_format($views, 0, ',', '.'))
-                ->description('Popup getoond (30 dagen)')
+                ->description(__('Popup getoond (30 dagen)'))
                 ->icon('heroicon-o-eye')
                 ->color('gray'),
             Stat::make('Submits', number_format($submits, 0, ',', '.'))

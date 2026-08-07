@@ -11,7 +11,7 @@ class ImageBlock
     public static function make(): Block
     {
         return Block::make('image')
-            ->label('Afbeelding')
+            ->label(__('Afbeelding'))
             ->icon('heroicon-o-photo')
             ->schema([
                 FileUpload::make('image')
@@ -19,7 +19,7 @@ class ImageBlock
                     ->directory('popups')
                     ->required(),
                 TextInput::make('alt')
-                    ->label('Alt-tekst'),
+                    ->label(__('Alt-tekst')),
             ]);
     }
 }
