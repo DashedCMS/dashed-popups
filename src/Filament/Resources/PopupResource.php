@@ -45,7 +45,9 @@ class PopupResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-archive-box';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Content';
+    protected static string|UnitEnum|null $navigationGroup = 'Communicatie';
+
+    protected static ?int $navigationSort = 20;
 
     protected static ?string $label = 'Popup';
 
