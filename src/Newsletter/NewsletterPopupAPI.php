@@ -89,9 +89,8 @@ class NewsletterPopupAPI
                 ->columnSpanFull(),
             Textarea::make('consent_text')
                 ->label(__('Toestemmingstekst'))
-                ->helperText(__('De tekst die in de popup naast het aanmeldveld stond. Deze wordt letterlijk bewaard als bewijs.'))
-                ->rows(2)
-                ->required(),
+                ->helperText(__('De tekst die in de popup naast het aanmeldveld stond, letterlijk bewaard als bewijs. Laat je hem leeg, dan wordt de toestemming zelf nog steeds vastgelegd met tijdstip, IP en bron, alleen zonder tekst erbij.'))
+                ->rows(2),
         ];
     }
 
