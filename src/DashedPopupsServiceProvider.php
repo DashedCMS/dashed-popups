@@ -47,6 +47,24 @@ class DashedPopupsServiceProvider extends PackageServiceProvider
             $schedule = app(Schedule::class);
             $schedule->command('popups:rollup-stats')->dailyAt('02:00');
             $schedule->command('dashed:recalculate-popup-stats')->hourly()->withoutOverlapping();
+
+            // De eigen nieuwsbrief moet overal te kiezen zijn waar een koppeling
+            // als Laposta dat ook is. In booted() en achter een guard: dit
+            // pakket vereist de nieuwsbriefmodule niet, en in de register-fase
+            // bestaat die binding nog niet.
+            if (! app()->bound('newsletter')) {
+                return;
+            }
+
+            forms()->builder(
+                'popupApiClasses',
+                array_merge(forms()->builder('popupApiClasses'), [
+                    'newsletter-popup-api' => [
+                        'name' => 'Nieuwsbrieflijst in het CMS',
+                        'class' => \Dashed\DashedPopups\Newsletter\NewsletterPopupAPI::class,
+                    ],
+                ])
+            );
         });
 
         //        $this->app->booted(function () {
