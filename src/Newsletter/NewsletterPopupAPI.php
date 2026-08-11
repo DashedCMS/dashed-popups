@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Dashed\DashedPopups\Newsletter;
 
+use Illuminate\Support\Facades\Log;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Textarea;
@@ -37,7 +38,18 @@ class NewsletterPopupAPI
             throw new \RuntimeException('Nieuwsbrief: de ingestelde lijst bestaat niet meer.');
         }
 
-        if (! $view->email) {
+        // Een popup verzamelt wat een bezoeker in een vakje typt, dus een
+        // onbruikbaar adres is hier gewone invoer en geen storing. Zou het
+        // doorgaan naar subscribe(), dan gooit die terecht een uitzondering, en
+        // SyncPopupSubmissionToNewsletterJob meldt die met report() als
+        // systeemfout. Dat vult de foutmeldingen met typefouten van bezoekers.
+        if (! $view->email || ! filter_var($view->email, FILTER_VALIDATE_EMAIL)) {
+            Log::info('Popup-aanmelding overgeslagen: geen bruikbaar e-mailadres', [
+                'popup_id' => $view->popup_id,
+                'view_id' => $view->id,
+                'newsletter_list_id' => $list->id,
+            ]);
+
             return;
         }
 
