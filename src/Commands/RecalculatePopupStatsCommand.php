@@ -27,15 +27,27 @@ class RecalculatePopupStatsCommand extends Command
 
     protected $description = 'Hertbereken de cached stats-kolommen op alle popups (totalen + 30d).';
 
+    /**
+     * De ontdekkingsquery in zorgVoorDekkingTot() groepeert over de hele
+     * dashed__popup_views zonder popup-filter. Onbegrensd aangeroepen scant
+     * die dus elke keer de volledige tabel (zes miljoen rijen in productie),
+     * en dit commando draait elk uur via de scheduler. Daarom wordt de
+     * ontdekking hier begrensd tot dertig dagen terug: dat heelt gaten van
+     * een scheduler die tot een maand heeft stilgestaan, met een bereikscan
+     * in plaats van een volledige. Gaten die verder terugliggen worden niet
+     * door dit commando geheeld, maar door de dagelijkse vooraf-haak van het
+     * opruimen (die de aggregatie bijwerkt voor rijen die de bewaartermijn
+     * naderen) en door de eenmalige historische aanvulronde.
+     */
+    private const DEKKING_VENSTER_DAGEN = 30;
+
     public function handle(MetricsResolver $resolver, RollupService $rollup): int
     {
-        // Eenmalig voor de hele run, niet per popup: zorgVoorDekkingTot werkt
+        // Eenmalig voor de hele run, niet per popup: de ontdekkingsquery werkt
         // over dashed__popup_views in zijn geheel en niet per popup_id, dus
-        // een aanroep per popup zou de tabel net zo vaak opnieuw doorzoeken
-        // zonder dat er na de eerste keer nog iets aan te vullen valt. De
-        // methode zelf slaat dagen over die al in de aggregatie staan, dus
-        // een volgende run hier kost weinig.
-        $rollup->zorgVoorDekkingTot(now());
+        // een aanroep per popup zou de scan net zo vaak herhalen zonder dat
+        // er na de eerste keer nog iets aan te vullen valt.
+        $rollup->zorgVoorDekkingTot(now(), now()->subDays(self::DEKKING_VENSTER_DAGEN));
 
         $query = Popup::query()->select(['id']);
 
@@ -94,10 +106,13 @@ class RecalculatePopupStatsCommand extends Command
         $to = now()->endOfDay();
         $metrics30d = $resolver->forPopup($popupId, $from, $to);
 
+        // Geen ?? 0 achter $totalen->*: de aggregate hierboven heeft geen
+        // GROUP BY, dus first() levert altijd precies één rij met de
+        // COALESCE(...)-waarden uit de query, nooit null.
         Popup::query()->where('id', $popupId)->update([
-            'cached_views_count' => (int) ($totalen->views ?? 0),
-            'cached_submits_count' => (int) ($totalen->submits ?? 0),
-            'cached_dismissals_count' => (int) ($totalen->dismissals ?? 0),
+            'cached_views_count' => (int) $totalen->views,
+            'cached_submits_count' => (int) $totalen->submits,
+            'cached_dismissals_count' => (int) $totalen->dismissals,
             'cached_in_flow_count' => $inFlow,
             'cached_views_30d' => (int) ($metrics30d['views'] ?? 0),
             'cached_submits_30d' => (int) ($metrics30d['submits'] ?? 0),

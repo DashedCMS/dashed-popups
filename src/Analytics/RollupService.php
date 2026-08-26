@@ -90,9 +90,18 @@ class RollupService
      * met de rijen mee, want de nachtelijke rollup kijkt maar zeven dagen
      * terug en een installatie waar de scheduler stilstond heeft gaten.
      *
+     * De ontdekkingsquery hieronder groepeert over de hele dashed__popup_views
+     * zonder popup-filter; alleen het aanvullen zelf is goedkoop zodra de
+     * gaten gedicht zijn. Geef `$vanaf` mee om die ontdekking tot een
+     * bereikscan te beperken (`created_at >= $vanaf`) in plaats van de volle
+     * tabel te doorzoeken. Zonder `$vanaf` blijft de ontdekking onbegrensd,
+     * wat de eenmalige historische aanvulronde en de dagelijkse vooraf-haak
+     * van het opruimen nodig hebben: die moeten ook gaten dichten die verder
+     * terugliggen dan enig begrensd venster.
+     *
      * @return int aantal aangevulde popup-dagcombinaties
      */
-    public function zorgVoorDekkingTot(CarbonInterface $grens): int
+    public function zorgVoorDekkingTot(CarbonInterface $grens, ?CarbonInterface $vanaf = null): int
     {
         // Filteren op created_at en groeperen op first_seen_at is met opzet:
         // verwijderd wordt er op created_at, geaggregeerd op first_seen_at.
@@ -100,6 +109,7 @@ class RollupService
         // aggregatie, ook als de twee kolommen ooit uiteenlopen.
         $dagen = DB::table('dashed__popup_views')
             ->where('created_at', '<', $grens)
+            ->when($vanaf, fn ($query) => $query->where('created_at', '>=', $vanaf))
             ->selectRaw('popup_id, DATE(first_seen_at) as dag')
             ->groupBy('popup_id', 'dag')
             ->get();
