@@ -7,8 +7,11 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Event;
 use Dashed\DashedPopups\Livewire\Popup;
 use Spatie\LaravelPackageTools\Package;
+use Dashed\DashedCore\Retention\Termijn;
+use Dashed\DashedCore\Retention\Retention;
 use Illuminate\Console\Scheduling\Schedule;
 use Dashed\DashedPopups\Policies\PopupPolicy;
+use Dashed\DashedPopups\Analytics\RollupService;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Dashed\DashedPopups\Commands\RollupPopupStatsCommand;
 use Dashed\DashedPopups\Filament\Resources\PopupResource;
@@ -134,6 +137,44 @@ MARKDOWN,
                 'Zet een ruim interval in zodat terugkerende bezoekers de popup niet te vaak zien.',
                 'Plan actiepopups vooraf met een start- en einddatum zodat ze vanzelf lopen.',
             ],
+        );
+
+        self::registreerBewaartermijnen();
+    }
+
+    /**
+     * De popup-vertoningen aanmelden bij het bewaartermijnenregister.
+     *
+     * Statisch en apart van bootingPackage(), zodat een test hem opnieuw kan
+     * aanroepen na app(RetentionRegistry::class)->flush(). Deze __()-aanroepen
+     * mogen niet in registeringPackage() of packageRegistered() staan: die
+     * fase draait voordat de vertaalservice klaarstaat en zou de hele boot
+     * laten klappen.
+     */
+    public static function registreerBewaartermijnen(): void
+    {
+        cms()->registerRetention(
+            Retention::make('popup_views')
+                ->label(__('Popup-vertoningen'))
+                ->pakket('dashed-popups', __('Popups'))
+                ->tabel('dashed__popup_views')
+                // Zonder deze haak lopen de dagcijfers uit de pas met de rijen
+                // die zo verdwijnen: de nachtelijke rollup kijkt maar zeven
+                // dagen terug, dus een stilgestane scheduler laat gaten
+                // vallen die hierna niet meer in te halen zijn.
+                ->vooraf(fn ($grens) => app(RollupService::class)->zorgVoorDekkingTot($grens))
+                ->termijn(
+                    Termijn::make('popup_views', 90, 'created_at')
+                        ->label(__('Popup-vertoningen bewaren (dagen)'))
+                        ->uitleg(__('Anonieme vertoningen. Inzendingen, kortingscodes en aan een bestelling gekoppelde vertoningen blijven altijd staan. De dagcijfers blijven bewaard, maar de uitsplitsing per URL, taal en verwijzer werkt alleen binnen deze termijn. Standaard: 90 dagen.'))
+                        ->filter(fn ($query) => $query
+                            ->whereNull('submitted_at')
+                            ->whereNull('email')
+                            ->whereNull('user_id')
+                            ->whereNull('discount_code_id')
+                            ->whereNull('matched_order_id')
+                            ->whereNull('follow_up_started_at'))
+                )
         );
     }
 
