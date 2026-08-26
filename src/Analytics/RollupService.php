@@ -24,6 +24,16 @@ class RollupService
         // bestaat uitsluitend voor de testsuite, die in-memory sqlite draait
         // (zie PruneRunner/RollupService-tests in tests/Feature/Retention).
         // Productie draait altijd MySQL en gebruikt de andere tak.
+        //
+        // De twee takken geven alleen hetzelfde getal omdat first_seen_at en
+        // closed_at dateTime-kolommen zijn die uitsluitend met now() gevuld
+        // worden, dus zonder fracties van een seconde: TIMESTAMPDIFF(MICRO-
+        // SECOND, ...) / 1000 en (strftime('%s', ...) - strftime('%s', ...))
+        // * 1000 rekenen dan op seconden-precisie hetzelfde uit. Krijgt een
+        // van beide kolommen ooit sub-seconde precisie (een migratie naar
+        // timestamp(3) of hoger, of een schrijfpad dat geen now() gebruikt),
+        // dan lopen deze twee takken uiteen en merkt geen test dat: alleen de
+        // sqlite-tak draait in de testsuite.
         $verschilInMs = fn (string $van, string $tot) => DB::connection()->getDriverName() === 'sqlite'
             ? "(strftime('%s', {$tot}) - strftime('%s', {$van})) * 1000"
             : "TIMESTAMPDIFF(MICROSECOND, {$van}, {$tot}) / 1000";
