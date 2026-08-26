@@ -8,6 +8,7 @@ use Throwable;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Dashed\DashedPopups\Models\Popup;
+use Dashed\DashedPopups\Analytics\RollupService;
 use Dashed\DashedPopups\Analytics\MetricsResolver;
 
 /**
@@ -26,8 +27,16 @@ class RecalculatePopupStatsCommand extends Command
 
     protected $description = 'Hertbereken de cached stats-kolommen op alle popups (totalen + 30d).';
 
-    public function handle(MetricsResolver $resolver): int
+    public function handle(MetricsResolver $resolver, RollupService $rollup): int
     {
+        // Eenmalig voor de hele run, niet per popup: zorgVoorDekkingTot werkt
+        // over dashed__popup_views in zijn geheel en niet per popup_id, dus
+        // een aanroep per popup zou de tabel net zo vaak opnieuw doorzoeken
+        // zonder dat er na de eerste keer nog iets aan te vullen valt. De
+        // methode zelf slaat dagen over die al in de aggregatie staan, dus
+        // een volgende run hier kost weinig.
+        $rollup->zorgVoorDekkingTot(now());
+
         $query = Popup::query()->select(['id']);
 
         if ($onlyPopupId = (int) ($this->option('popup') ?: 0)) {
@@ -57,16 +66,27 @@ class RecalculatePopupStatsCommand extends Command
 
     private function recalculateOne(int $popupId, MetricsResolver $resolver): void
     {
-        // All-time tellers via 1 enkele aggregate-query op popup_views.
-        $totals = DB::table('dashed__popup_views')
+        // All-time tellers uit de dagaggregatie. De ruwe vertoningen worden na
+        // hun bewaartermijn opgeruimd; wie de tellers daaruit blijft halen laat
+        // ze na drie maanden stilzwijgend inzakken. handle() heeft de
+        // aggregatie hierboven al bijgewerkt tot en met vandaag, dus deze som
+        // mist geen dagen die nog niet opgeruimd zijn.
+        $totalen = DB::table('dashed__popup_stats_daily')
             ->where('popup_id', $popupId)
             ->selectRaw('
-                COUNT(*) as views,
-                SUM(CASE WHEN submitted_at IS NOT NULL THEN 1 ELSE 0 END) as submits,
-                SUM(CASE WHEN closed_at IS NOT NULL AND submitted_at IS NULL THEN 1 ELSE 0 END) as dismissals,
-                SUM(CASE WHEN follow_up_started_at IS NOT NULL AND follow_up_cancelled_at IS NULL THEN 1 ELSE 0 END) as in_flow
+                COALESCE(SUM(views), 0) as views,
+                COALESCE(SUM(submits), 0) as submits,
+                COALESCE(SUM(dismissals), 0) as dismissals
             ')
             ->first();
+
+        // Een lopende follow-up is per definitie recent, dus die telt wel uit
+        // de ruwe tabel; bovendien staat hij niet in de dagaggregatie.
+        $inFlow = DB::table('dashed__popup_views')
+            ->where('popup_id', $popupId)
+            ->whereNotNull('follow_up_started_at')
+            ->whereNull('follow_up_cancelled_at')
+            ->count();
 
         // 30-daagse stats via de bestaande MetricsResolver (gebruikt
         // dashed__popup_stats_daily zodat er geen full-table-scan ontstaat).
@@ -75,10 +95,10 @@ class RecalculatePopupStatsCommand extends Command
         $metrics30d = $resolver->forPopup($popupId, $from, $to);
 
         Popup::query()->where('id', $popupId)->update([
-            'cached_views_count' => (int) ($totals->views ?? 0),
-            'cached_submits_count' => (int) ($totals->submits ?? 0),
-            'cached_dismissals_count' => (int) ($totals->dismissals ?? 0),
-            'cached_in_flow_count' => (int) ($totals->in_flow ?? 0),
+            'cached_views_count' => (int) ($totalen->views ?? 0),
+            'cached_submits_count' => (int) ($totalen->submits ?? 0),
+            'cached_dismissals_count' => (int) ($totalen->dismissals ?? 0),
+            'cached_in_flow_count' => $inFlow,
             'cached_views_30d' => (int) ($metrics30d['views'] ?? 0),
             'cached_submits_30d' => (int) ($metrics30d['submits'] ?? 0),
             'cached_dismissals_30d' => (int) ($metrics30d['dismissals'] ?? 0),
