@@ -31,6 +31,21 @@ class DashedPopupsServiceProvider extends PackageServiceProvider
     {
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'dashed-popups');
 
+        // Mobiele app: "Pop-ups" als module-pagina in het app-menu (opent de
+        // admin-lijst via een magic-link). Dubbel geguard: mobile-api kan
+        // ontbreken of een oudere versie zonder app-pages-registry zijn.
+        if (class_exists(\Dashed\DashedMobileApi\MobileApiRegistry::class)) {
+            $mobileApi = $this->app->make(\Dashed\DashedMobileApi\MobileApiRegistry::class);
+            if (method_exists($mobileApi, 'registerAppPage')) {
+                $mobileApi->registerAppPage('popups', [
+                    'title' => 'Pop-ups',
+                    'icon' => 'albums-outline',
+                    'group' => 'Modules',
+                    'url' => fn () => \Dashed\DashedPopups\Filament\Resources\PopupResource::getUrl(),
+                ]);
+            }
+        }
+
         Livewire::component('dashed-popups.popup', Popup::class);
         Livewire::component('dashed-popups.admin.popup-analytics-panel', PopupAnalyticsPanel::class);
         Livewire::component('dashed.dashed-popups.filament.widgets.popup-performance-overview', PopupPerformanceOverview::class);
