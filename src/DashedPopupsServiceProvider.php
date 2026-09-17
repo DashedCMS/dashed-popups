@@ -155,6 +155,32 @@ MARKDOWN,
         );
 
         self::registreerBewaartermijnen();
+        self::registreerVertaalbaren();
+    }
+
+    /**
+     * Popups en popup-opvolgmails aanmelden bij het vertaalstatus-overzicht.
+     *
+     * Statisch, naar het voorbeeld van registreerBewaartermijnen(). Guarded
+     * op class_exists: dashed-popups kent dashed-translations niet als
+     * afhankelijkheid.
+     */
+    public static function registreerVertaalbaren(): void
+    {
+        if (! class_exists(\Dashed\DashedTranslations\Classes\Translatables\TranslatableRegistry::class)) {
+            return;
+        }
+
+        $registry = \Dashed\DashedTranslations\Classes\Translatables\TranslatableRegistry::class;
+        $make = fn (string $model) => \Dashed\DashedTranslations\Classes\Translatables\Translatable::make($model)->group(__('Marketing'));
+
+        $registry::register($make(\Dashed\DashedPopups\Models\Popup::class)
+            ->label(__('Popups'))
+            ->contentChildren()
+            ->urlVia(\Dashed\DashedPopups\Filament\Resources\PopupResource::class));
+
+        $registry::register($make(\Dashed\DashedPopups\Models\PopupFollowUpEmail::class)
+            ->label(__('Popup-opvolgmails')));
     }
 
     /**
