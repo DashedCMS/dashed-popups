@@ -44,6 +44,22 @@ class DashedPopupsServiceProvider extends PackageServiceProvider
                     'url' => fn () => \Dashed\DashedPopups\Filament\Resources\PopupResource::getUrl(),
                 ]);
             }
+
+            // Native popups-integratie: capability + rechten zodat de app een
+            // eigen popups-scherm kan tonen (i.p.v. de WebView-magic-link).
+            if (method_exists($mobileApi, 'registerCapability')) {
+                $version = \Composer\InstalledVersions::isInstalled('dashed/dashed-popups')
+                    ? \Composer\InstalledVersions::getPrettyVersion('dashed/dashed-popups')
+                    : null;
+                $mobileApi->registerCapability('popups', ['version' => $version]);
+                $mobileApi->registerAbilities(['popups.read', 'popups.write']);
+                $mobileApi->registerRoleAbilities([
+                    'eigenaar' => ['popups.read', 'popups.write'],
+                    'admin' => ['popups.read', 'popups.write'],
+                    'shopbeheerder' => ['popups.read', 'popups.write'],
+                    'read-only' => ['popups.read'],
+                ]);
+            }
         }
 
         Livewire::component('dashed-popups.popup', Popup::class);
@@ -223,6 +239,12 @@ MARKDOWN,
     {
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadRoutesFrom(__DIR__.'/../routes/frontend.php');
+
+        // Native popups-API voor de mobiele app — alleen laden als de mobile-api
+        // (met de mobile.site/ability-middleware) aanwezig is.
+        if (class_exists(\Dashed\DashedMobileApi\MobileApiRegistry::class)) {
+            $this->loadRoutesFrom(__DIR__.'/../routes/mobile-api.php');
+        }
 
         $this->mergeConfigFrom(__DIR__.'/../config/popups.php', 'popups');
 
