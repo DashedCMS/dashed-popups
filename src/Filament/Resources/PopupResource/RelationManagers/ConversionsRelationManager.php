@@ -19,6 +19,8 @@ use Filament\Resources\RelationManagers\RelationManager;
 
 class ConversionsRelationManager extends RelationManager
 {
+    use \Dashed\DashedCore\Filament\Concerns\TranslatesRelationManagerLabels;
+
     protected static string $relationship = 'conversions';
 
     protected static ?string $title = 'Conversies';

@@ -33,6 +33,8 @@ use Dashed\DashedPopups\Filament\Resources\PopupFollowUpFlowResource\Pages\Creat
 
 class PopupFollowUpFlowResource extends Resource
 {
+    use \Dashed\DashedCore\Filament\Concerns\TranslatesResourceLabels;
+
     public const VARIABLES_HELP = 'Variabelen: :siteName: :email: :discountCode: :discountValue: :siteUrl:';
 
     protected static ?string $model = PopupFollowUpFlow::class;

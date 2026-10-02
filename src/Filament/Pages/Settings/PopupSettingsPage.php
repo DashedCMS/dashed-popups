@@ -16,6 +16,7 @@ use Filament\Schemas\Concerns\InteractsWithSchemas;
 
 class PopupSettingsPage extends Page implements HasSchemas
 {
+    use \Dashed\DashedCore\Filament\Concerns\TranslatesPageLabels;
     use HasSettingsPermission;
     use InteractsWithSchemas;
 

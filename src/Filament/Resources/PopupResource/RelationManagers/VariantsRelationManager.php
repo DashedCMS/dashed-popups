@@ -18,6 +18,8 @@ use Filament\Resources\RelationManagers\RelationManager;
 
 class VariantsRelationManager extends RelationManager
 {
+    use \Dashed\DashedCore\Filament\Concerns\TranslatesRelationManagerLabels;
+
     protected static string $relationship = 'variants';
 
     protected static ?string $title = 'Varianten';
