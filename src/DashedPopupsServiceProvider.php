@@ -256,7 +256,8 @@ MARKDOWN,
             __DIR__.'/../resources/templates' => resource_path('views/'.config('dashed-core.site_theme', 'dashed')),
         ], 'dashed-templates');
 
-        $package->name('dashed-popups');
+        $package->name('dashed-popups')
+            ->hasTranslations();
 
         cms()->builder('plugins', [
             new DashedPopupsPlugin(),
