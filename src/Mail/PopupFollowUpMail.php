@@ -22,9 +22,34 @@ class PopupFollowUpMail extends Mailable
     use SerializesModels;
     use \Dashed\DashedEcommerceCore\Mail\Concerns\HasRecommendations;
 
+    /**
+     * Optional: turns the code in the discount block into a link that applies
+     * it (the consuming app owns that route). Receives the code, returns a URL
+     * or null for no link.
+     *
+     * @var (\Closure(string): ?string)|null
+     */
+    protected static ?\Closure $discountLinkResolver = null;
+
     public ?string $previewDiscountCode = null;
 
     public ?string $previewDiscountValue = null;
+
+    public static function linkDiscountCodeUsing(?callable $resolver): void
+    {
+        static::$discountLinkResolver = $resolver ? \Closure::fromCallable($resolver) : null;
+    }
+
+    public static function discountLink(string $code): ?string
+    {
+        if (! static::$discountLinkResolver || $code === '') {
+            return null;
+        }
+
+        $url = (static::$discountLinkResolver)($code);
+
+        return is_string($url) && $url !== '' ? $url : null;
+    }
 
     public function __construct(
         public readonly PopupView $popupView,
@@ -228,9 +253,22 @@ class PopupFollowUpMail extends Mailable
                         .'</strong> op je bestelling</div>';
                 }
 
+                $codeStyle = 'display:inline-block; padding:12px 24px; background:'.$primaryColor.'; color:'.$textColor.'; font-family: Arial, sans-serif; font-size:18px; font-weight:bold; letter-spacing:1px; border-radius:6px;';
+                $codeHtml = '<div style="'.$codeStyle.'">'.htmlspecialchars($code, ENT_QUOTES, 'UTF-8').'</div>';
+                $hintRow = '';
+                $link = static::discountLink($code);
+                if ($link !== null) {
+                    $codeHtml = '<a href="'.htmlspecialchars($link, ENT_QUOTES, 'UTF-8').'" style="'.$codeStyle.' text-decoration:none;">'.htmlspecialchars($code, ENT_QUOTES, 'UTF-8').'</a>';
+                    $hint = $sub($data['link_hint'] ?? 'Klik op de code om hem direct toe te passen');
+                    if ($hint !== '') {
+                        $hintRow = '<div style="font-family: Arial, sans-serif; font-size:12px; color:#6b7280; margin-top:8px;">'.htmlspecialchars($hint, ENT_QUOTES, 'UTF-8').'</div>';
+                    }
+                }
+
                 return '<tr><td align="center" style="padding: 16px 24px;">'
                     .'<div style="font-family: Arial, sans-serif; font-size:14px; color:#374151; margin-bottom:8px;">'.htmlspecialchars($label, ENT_QUOTES, 'UTF-8').'</div>'
-                    .'<div style="display:inline-block; padding:12px 24px; background:'.$primaryColor.'; color:'.$textColor.'; font-family: Arial, sans-serif; font-size:18px; font-weight:bold; letter-spacing:1px; border-radius:6px;">'.htmlspecialchars($code, ENT_QUOTES, 'UTF-8').'</div>'
+                    .$codeHtml
+                    .$hintRow
                     .$valueRow
                     .'</td></tr>';
         }

@@ -2,6 +2,11 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.31.0 - 2026-10-19
+
+### Added
+- **Klikbare kortingscode in de opvolgmail.** `PopupFollowUpMail::linkDiscountCodeUsing(fn (string $code) => $url)` maakt van de code in het blok `discount` een link (de app levert de route die de code toepast). Eronder staat "Klik op de code om hem direct toe te passen" (blokveld `link_hint`, leeg = geen regel). Zonder resolver verandert er niets.
+
 ## v4.21.0 - 2026-06-26
 
 ### Fixed
