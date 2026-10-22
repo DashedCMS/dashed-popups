@@ -55,6 +55,7 @@ class Popup extends Model
         'discount_amount' => 'decimal:2',
         'minimum_amount' => 'decimal:2',
         'minimum_products_count' => 'integer',
+        'newsletter_segment_id' => 'integer',
     ];
 
     protected static function booted(): void
@@ -118,6 +119,53 @@ class Popup extends Model
     public function shouldShowFor(Request $request): bool
     {
         return app(PopupTargetingService::class)->shouldShow($this, $request);
+    }
+
+    /**
+     * Of de nieuwsbriefsegmenten er zijn: popups werkt ook zonder het
+     * nieuwsbriefpakket, en dan bestaat het segmentveld niet.
+     */
+    public static function segmentsAvailable(): bool
+    {
+        return class_exists(\Dashed\DashedNewsletter\Visitors\VisitorRecognition::class);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function segmentOptions(): array
+    {
+        if (! static::segmentsAvailable()) {
+            return [];
+        }
+
+        return \Dashed\DashedNewsletter\Models\NewsletterSegment::query()
+            ->with('list')
+            ->orderBy('name')
+            ->get()
+            ->mapWithKeys(fn ($segment) => [$segment->id => trim(($segment->list?->name ? $segment->list->name . ': ' : '') . $segment->name)])
+            ->all();
+    }
+
+    /**
+     * Zonder segment geldt de popup voor iedereen. Met een segment alleen voor
+     * een herkende bezoeker in dat segment (VisitorRecognition in de
+     * nieuwsbrief): een onbekende bezoeker ziet hem niet, en zonder het
+     * nieuwsbriefpakket ook niemand, want dan is niet te bepalen wie erin valt.
+     *
+     * @param  array<int, string|null>  $emails  ingelogde klant, eerder ingevuld adres
+     */
+    public function matchesAudience(array $emails): bool
+    {
+        if (! $this->newsletter_segment_id) {
+            return true;
+        }
+
+        if (! static::segmentsAvailable()) {
+            return false;
+        }
+
+        return \Dashed\DashedNewsletter\Visitors\VisitorRecognition::inSegment((int) $this->newsletter_segment_id, $emails);
     }
 
     public function isDiscountType(): bool

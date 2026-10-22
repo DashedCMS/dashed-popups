@@ -317,6 +317,15 @@ class PopupResource extends Resource
                         ->live()
                         ->columnSpanFull(),
 
+                    Select::make('newsletter_segment_id')
+                        ->label(__('Alleen tonen aan segment'))
+                        ->helperText(__('Leeg is iedereen. Met een segment ziet alleen een herkende bezoeker in dat segment de popup: een ingelogde klant, een bezoeker die via de nieuwsbrief binnenkwam (als de lijst bezoekers herkent) of iemand die eerder een popup invulde.'))
+                        ->options(fn (): array => Popup::segmentOptions())
+                        ->searchable()
+                        ->nullable()
+                        ->visible(fn (): bool => Popup::segmentsAvailable())
+                        ->columnSpanFull(),
+
                     Section::make(__('Tonen op'))
                         ->visible(fn (Get $get) => $get('visibility_mode') === 'only_selection')
                         ->schema([

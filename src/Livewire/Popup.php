@@ -64,6 +64,10 @@ class Popup extends Component
         $user = Auth::user();
         $identityEmail = $this->resolveIdentityEmail($user);
 
+        if (! $this->popup->matchesAudience([$user?->email, session('popup_identity_email')])) {
+            return;
+        }
+
         // Discount popups would give a customer with custom/contract pricing an extra discount on top.
         if ($this->popup->isDiscountType() && $user && ($user->has_custom_pricing ?? false)) {
             return;
