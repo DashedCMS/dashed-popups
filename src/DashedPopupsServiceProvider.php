@@ -29,6 +29,9 @@ class DashedPopupsServiceProvider extends PackageServiceProvider
 
     public function bootingPackage()
     {
+        // Actieve popups op de campagnekalender van dashed-core.
+        \Dashed\DashedPopups\Classes\PopupCalendar::register();
+
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'dashed-popups');
 
         // Mobiele app: "Pop-ups" als module-pagina in het app-menu (opent de
