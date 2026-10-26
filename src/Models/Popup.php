@@ -4,6 +4,7 @@ namespace Dashed\DashedPopups\Models;
 
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Translatable\HasTranslations;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Dashed\DashedEcommerceCore\Models\Product;
@@ -18,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class Popup extends Model
 {
     use LogsActivity;
+    use SoftDeletes;
     use HasTranslations;
 
     protected $table = 'dashed__popups';
@@ -60,7 +62,13 @@ class Popup extends Model
 
     protected static function booted(): void
     {
+        // Alleen bij definitief verwijderen: een popup in de prullenbak moet
+        // met zijn vertoningen (en dus zijn cijfers) terug kunnen.
         static::deleting(function ($popup) {
+            if (! $popup->isForceDeleting()) {
+                return;
+            }
+
             $popup->views()->delete();
         });
 
