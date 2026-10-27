@@ -3,6 +3,7 @@
 namespace Dashed\DashedPopups\Livewire;
 
 use Livewire\Component;
+use Livewire\Attributes\Locked;
 use Illuminate\Support\Str;
 use Dashed\DashedCore\Classes\Mails;
 use Dashed\DashedCore\Classes\Sites;
@@ -22,9 +23,20 @@ use Dashed\DashedEcommerceCore\Jobs\AbandonedCart\ScheduleAbandonedCartEmailsFor
 
 class Popup extends Component
 {
+    #[Locked]
     public ?PopupModel $popup = null;
 
+    #[Locked]
     public ?PopupView $popupView = null;
+
+    /**
+     * Of deze bezoeker bij het mounten door alle controles kwam (targeting,
+     * segment, eigen prijzen, al geclaimd, looptijd). Alleen de server zet
+     * dit; zonder deze vlag kon een bezoeker die de popup nooit te zien
+     * kreeg toch submitEmail aanroepen en een kortingscode ophalen.
+     */
+    #[Locked]
+    public bool $eligible = false;
 
     public bool $showPopup = false;
 
@@ -135,6 +147,7 @@ class Popup extends Component
         }
 
         $this->popupView = $popupView;
+        $this->eligible = $inWindow;
     }
 
     /**
@@ -204,13 +217,15 @@ class Popup extends Component
      * dezelfde gebruiker bij elke volgende discount-popup opnieuw zijn email
      * moet invullen.
      */
-    protected function hasAlreadyClaimedDiscount(?int $userId, ?string $email): bool
+    protected function hasAlreadyClaimedDiscount(?int $userId, ?string $email, ?int $exceptViewId = null): bool
     {
         if (! $userId && ! $email) {
             return false;
         }
 
         return PopupView::query()
+            // Opnieuw insturen op dezelfde vertoning is geen nieuwe claim.
+            ->when($exceptViewId, fn ($q) => $q->whereKeyNot($exceptViewId))
             ->whereNotNull('submitted_at')
             ->whereNotNull('discount_code_id')
             ->where(function ($q) use ($userId, $email) {
@@ -224,9 +239,38 @@ class Popup extends Component
             ->exists();
     }
 
+    /**
+     * Herhaalt bij het insturen de controles uit mount() die sindsdien kunnen
+     * zijn veranderd. Targeting op URL kan hier niet opnieuw: een
+     * Livewire-verzoek gaat naar /livewire/update, dus dat leunt op de
+     * vergrendelde vlag uit mount().
+     */
+    protected function eligibleForDiscount(): bool
+    {
+        if (! $this->eligible || ! $this->popup || ! $this->popupView || ! $this->popup->isDiscountType()) {
+            return false;
+        }
+
+        $popup = $this->popup->fresh();
+        if (! $popup || ! $popup->isActiveNow()) {
+            return false;
+        }
+
+        $user = Auth::user();
+        if ($user && ($user->has_custom_pricing ?? false)) {
+            return false;
+        }
+
+        if (! $popup->matchesAudience([$user?->email, session('popup_identity_email')])) {
+            return false;
+        }
+
+        return ! $this->hasAlreadyClaimedDiscount($user?->id, $this->resolveIdentityEmail($user), $this->popupView->id);
+    }
+
     public function submitEmail(): void
     {
-        if (! $this->popup || ! $this->popup->isDiscountType()) {
+        if (! $this->eligibleForDiscount()) {
             return;
         }
 
