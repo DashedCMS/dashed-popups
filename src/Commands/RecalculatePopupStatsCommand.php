@@ -41,6 +41,15 @@ class RecalculatePopupStatsCommand extends Command
      */
     private const DEKKING_VENSTER_DAGEN = 30;
 
+    /**
+     * Zonder popups valt er niets bij te werken. Lukt de query niet, dan draait
+     * het commando gewoon.
+     */
+    public static function hasWork(): bool
+    {
+        return rescue(fn () => Popup::query()->exists(), true, false);
+    }
+
     public function handle(MetricsResolver $resolver, RollupService $rollup): int
     {
         // Eenmalig voor de hele run, niet per popup: de ontdekkingsquery werkt

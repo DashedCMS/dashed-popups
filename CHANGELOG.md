@@ -2,6 +2,11 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.35.1 - 2026-11-06
+
+### Changed
+- Geen dubbele pluginregistratie. `recalculate-popup-stats` draait alleen als er popups zijn.
+
 ## v4.31.0 - 2026-10-19
 
 ### Added

@@ -83,7 +83,10 @@ class DashedPopupsServiceProvider extends PackageServiceProvider
             /** @var Schedule $schedule */
             $schedule = app(Schedule::class);
             $schedule->command('popups:rollup-stats')->dailyAt('02:00');
-            $schedule->command('dashed:recalculate-popup-stats')->hourly()->withoutOverlapping();
+            $schedule->command('dashed:recalculate-popup-stats')
+                ->hourly()
+                ->withoutOverlapping()
+                ->when(fn () => RecalculatePopupStatsCommand::hasWork());
 
             // De eigen nieuwsbrief moet overal te kiezen zijn waar een koppeling
             // als Laposta dat ook is. In booted() en achter een guard: dit
@@ -261,9 +264,5 @@ MARKDOWN,
 
         $package->name('dashed-popups')
             ->hasTranslations();
-
-        cms()->builder('plugins', [
-            new DashedPopupsPlugin(),
-        ]);
     }
 }
