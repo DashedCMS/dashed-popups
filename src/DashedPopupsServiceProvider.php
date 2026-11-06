@@ -84,7 +84,7 @@ class DashedPopupsServiceProvider extends PackageServiceProvider
             $schedule = app(Schedule::class);
             $schedule->command('popups:rollup-stats')->dailyAt('02:00');
             $schedule->command('dashed:recalculate-popup-stats')
-                ->hourly()
+                ->hourlyAt(class_exists(\Dashed\DashedCore\Classes\ScheduleSpread::class) ? \Dashed\DashedCore\Classes\ScheduleSpread::minute('recalculate-popup-stats') : 0)
                 ->withoutOverlapping()
                 ->when(fn () => RecalculatePopupStatsCommand::hasWork());
 
