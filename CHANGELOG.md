@@ -2,6 +2,11 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.36.0 - 2026-11-16
+
+### Added
+- Het taakcentrum (het tabje Bezig) toont nu het synchroniseren van inzendingen naar de nieuwsbrief als één taak, en het terugvullen van ordermatches met totaal.
+
 ## v4.35.2 - 2026-11-06
 
 ### Changed

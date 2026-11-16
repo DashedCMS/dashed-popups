@@ -7,6 +7,7 @@ use Filament\Actions\DeleteAction;
 use Illuminate\Support\Collection;
 use Illuminate\Contracts\View\View;
 use Dashed\DashedPopups\Models\Popup;
+use Dashed\DashedCore\Models\BackgroundTask;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -194,9 +195,26 @@ class EditPopup extends EditRecord
             $query->whereNull('newsletter_synced_at');
         }
 
-        $query->chunkById(50, function ($views) use (&$count, $resendAll) {
+        // De hele ronde als één taak in het takenicoon van dashed-core; elke
+        // job telt er een af. Zonder eigen melding in de bel: de melding
+        // hieronder zegt al dat het loopt. Achter class_exists, want een
+        // oudere dashed-core kent BackgroundTask nog niet.
+        $taskId = null;
+        $total = class_exists(BackgroundTask::class) ? (int) rescue(fn () => (clone $query)->count(), 0, false) : 0;
+
+        if ($total > 0) {
+            $taskId = BackgroundTask::begin(
+                SyncPopupSubmissionToNewsletterJob::TASK_TYPE,
+                __('Popup-aanmeldingen doorzetten: :naam', ['naam' => (string) $record->name]),
+                $total,
+                auth()->id(),
+                notify: false,
+            )->getKey();
+        }
+
+        $query->chunkById(50, function ($views) use (&$count, $resendAll, $taskId) {
             foreach ($views as $view) {
-                SyncPopupSubmissionToNewsletterJob::dispatch($view->id, $resendAll);
+                SyncPopupSubmissionToNewsletterJob::dispatch($view->id, $resendAll, $taskId);
                 $count++;
             }
         });

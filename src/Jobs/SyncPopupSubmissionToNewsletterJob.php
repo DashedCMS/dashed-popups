@@ -9,6 +9,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Dashed\DashedPopups\Models\PopupView;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Dashed\DashedCore\Models\BackgroundTask;
 use Dashed\DashedPopups\Exceptions\NewsletterRateLimitException;
 
 class SyncPopupSubmissionToNewsletterJob implements ShouldQueue
@@ -18,6 +19,8 @@ class SyncPopupSubmissionToNewsletterJob implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
+    public const TASK_TYPE = 'popup-newsletter-sync';
+
     public int $tries = 3;
 
     public array $backoff = [60, 300, 900];
@@ -25,6 +28,7 @@ class SyncPopupSubmissionToNewsletterJob implements ShouldQueue
     public function __construct(
         public int $popupViewId,
         public bool $force = false,
+        public ?int $taskId = null,
     ) {
     }
 
@@ -33,10 +37,14 @@ class SyncPopupSubmissionToNewsletterJob implements ShouldQueue
         $view = PopupView::with('popup')->find($this->popupViewId);
 
         if (! $view || ! $view->email || ! $view->submitted_at) {
+            $this->advanceTask();
+
             return;
         }
 
         if (! $this->force && $view->newsletter_synced_at) {
+            $this->advanceTask();
+
             return;
         }
 
@@ -44,6 +52,7 @@ class SyncPopupSubmissionToNewsletterJob implements ShouldQueue
 
         if (! $apis) {
             $view->update(['newsletter_synced_at' => now()]);
+            $this->advanceTask();
 
             return;
         }
@@ -86,5 +95,37 @@ class SyncPopupSubmissionToNewsletterJob implements ShouldQueue
         }
 
         $view->update(['newsletter_synced_at' => now()]);
+        $this->advanceTask();
+    }
+
+    /**
+     * Ook een aanmelding die na alle pogingen niet doorkwam telt als
+     * afgehandeld, anders blijft de taak van een bulkronde eeuwig op bezig.
+     */
+    public function failed(\Throwable $e): void
+    {
+        $this->advanceTask();
+    }
+
+    /**
+     * Alleen bij een bulkronde vanuit het CMS (taskId gevuld): een losse
+     * inzending heeft geen taak. Telt in de database op en niet op het model,
+     * want de jobs lopen naast elkaar op meerdere workers.
+     */
+    protected function advanceTask(): void
+    {
+        if ($this->taskId === null || ! class_exists(BackgroundTask::class)) {
+            return;
+        }
+
+        rescue(function () {
+            BackgroundTask::query()->whereKey($this->taskId)->active()->increment('done');
+
+            $task = BackgroundTask::query()->whereKey($this->taskId)->active()->first();
+
+            if ($task && $task->total && $task->done >= $task->total) {
+                $task->finish(__(':aantal aanmeldingen doorgezet.', ['aantal' => $task->total]));
+            }
+        }, report: false);
     }
 }

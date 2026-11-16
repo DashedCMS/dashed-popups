@@ -4,6 +4,7 @@ namespace Dashed\DashedPopups\Commands;
 
 use Illuminate\Console\Command;
 use Dashed\DashedPopups\Models\PopupView;
+use Dashed\DashedCore\Models\BackgroundTask;
 use Dashed\DashedPopups\Services\PopupOrderMatcher;
 
 class BackfillPopupOrderMatchesCommand extends Command
@@ -24,19 +25,37 @@ class BackfillPopupOrderMatchesCommand extends Command
         $totalMatched = 0;
         $totalScanned = 0;
 
-        PopupView::query()
+        $query = PopupView::query()
             ->whereNotNull('submitted_at')
-            ->whereNull('matched_order_id')
-            ->orderBy('id')
-            ->chunkById($chunk, function ($views) use ($matcher, &$totalMatched, &$totalScanned) {
-                foreach ($views as $view) {
-                    $totalScanned++;
-                    if ($matcher->matchView($view) !== null) {
-                        $totalMatched++;
+            ->whereNull('matched_order_id');
+
+        // In het takenicoon van dashed-core, zonder starter en zonder melding:
+        // dit draait vanaf de opdrachtregel. Achter class_exists, want een
+        // oudere dashed-core kent BackgroundTask nog niet.
+        $task = class_exists(BackgroundTask::class)
+            ? BackgroundTask::begin('popup-order-matches', __('Popup-conversies aan orders koppelen'), rescue(fn () => (clone $query)->count(), null, false), notify: false)
+            : null;
+
+        try {
+            $query
+                ->orderBy('id')
+                ->chunkById($chunk, function ($views) use ($matcher, &$totalMatched, &$totalScanned, $task) {
+                    foreach ($views as $view) {
+                        $totalScanned++;
+                        if ($matcher->matchView($view) !== null) {
+                            $totalMatched++;
+                        }
                     }
-                }
-                $this->line("Gescand: {$totalScanned}, gematcht: {$totalMatched}");
-            });
+                    $this->line("Gescand: {$totalScanned}, gematcht: {$totalMatched}");
+                    $task?->progress($totalScanned);
+                });
+        } catch (\Throwable $e) {
+            $task?->fail($e);
+
+            throw $e;
+        }
+
+        $task?->finish(__(':aantal conversies gekoppeld aan een order.', ['aantal' => $totalMatched]));
 
         $this->info("Klaar. {$totalMatched} conversies gekoppeld aan een order.");
 
