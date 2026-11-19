@@ -29,6 +29,9 @@ class DashedPopupsServiceProvider extends PackageServiceProvider
 
     public function bootingPackage()
     {
+        // Sectie op het klantprofiel van ec-core; zonder webshop leest niemand hem.
+        cms()->builder('customerProfileSections', ['popups' => \Dashed\DashedPopups\CustomerProfile\PopupCustomerSection::class]);
+
         // Actieve popups op de campagnekalender van dashed-core.
         \Dashed\DashedPopups\Classes\PopupCalendar::register();
 
@@ -178,6 +181,12 @@ MARKDOWN,
 
         self::registreerBewaartermijnen();
         self::registreerVertaalbaren();
+
+        // AVG-verzoeken (inzage en verwijdering) in dashed-core; een oudere
+        // core kent de registry niet.
+        if (method_exists(cms(), 'registerPersonalDataProvider')) {
+            cms()->registerPersonalDataProvider(\Dashed\DashedPopups\PersonalData\PopupsPersonalDataProvider::class);
+        }
     }
 
     /**

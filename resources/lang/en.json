@@ -225,5 +225,13 @@
     "Wegklik %": "Dismiss %",
     "Weight": "Weight",
     "Wordt gebruikt in de discount code, bijv. V1 geeft WELKOM-V1-XXXXX": "Used in the discount code, e.g. V1 gives WELKOM-V1-XXXXX",
-    "Zichtbaar op :model:": "Visible on :model:"
+    "Zichtbaar op :model:": "Visible on :model:",
+    "Popup-vertoningen met e-mailadres": "Popup views with an email address",
+    "De vertoning blijft meetellen in de popupcijfers; e-mail, account, IP-adres, browser en ingevulde gegevens worden gewist en een lopende follow-up stopt.": "The view still counts in the popup figures; email, account, IP address, browser and submitted data are erased and a running follow-up stops.",
+    "Popup-inschrijvingen": "Popup sign-ups",
+    "Ingevuld op": "Submitted on",
+    "Gebruikt": "Used",
+    "Ja": "Yes",
+    "Nee": "No",
+    "Geen popup-inschrijvingen.": "No popup sign-ups."
 }

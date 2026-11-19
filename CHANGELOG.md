@@ -2,6 +2,11 @@
 
 All notable changes to `dashed-popups` will be documented in this file.
 
+## v4.37.0 - 2026-11-19
+
+### Added
+- AVG-provider (vertoningen anonimiseren) en een sectie in het klantprofiel.
+
 ## v4.36.0 - 2026-11-16
 
 ### Added
